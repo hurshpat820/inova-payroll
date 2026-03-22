@@ -1274,7 +1274,7 @@ document.getElementById("generateInviteBtn").onclick = async () => {
       createdAt: serverTimestamp()
     });
 
-    const inviteUrl = window.location.origin + "/index.html?invite=" + token;
+    const inviteUrl = "https://hurshpat820.github.io/inova-payroll/index.html?invite=" + token;
     document.getElementById("inviteLinkDisplay").value = inviteUrl;
     document.getElementById("inviteLinkContainer").style.display = "block";
     document.getElementById("inviteSuccessMsg").innerText = "INVITE READY — SEND THIS LINK TO THE EMPLOYEE";
