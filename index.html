@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>INOVA — ACCESS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #050505;
+  --card: #0a0a0a;
+  --ink: #ffffff;
+  --accent: #00ff41;
+  --border: #1a1a1a;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.login-card {
+  background: var(--card);
+  padding: 60px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.branding {
+  margin-bottom: 50px;
+}
+
+.brand-name {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.brand-sub {
+  font-size: 9px;
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-top: 5px;
+}
+
+input {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: #000;
+  border: 1px solid var(--border);
+  color: white;
+  font-size: 13px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus { border-color: var(--accent); }
+
+button {
+  width: 100%;
+  padding: 15px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  font-weight: 800;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  margin-bottom: 15px;
+  transition: all 0.2s;
+}
+
+button:hover { background: var(--accent); color: #000; }
+
+.toggle-link {
+  margin-top: 20px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.toggle-link:hover { opacity: 1; }
+
+.error {
+  color: #ff0000;
+  font-size: 11px;
+  margin-bottom: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  display: none;
+}
+
+.loading-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--bg);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--accent);
+}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading-overlay">AUTHENTICATING...</div>
+
+<div class="login-card">
+  <div class="branding">
+    <div class="brand-name">INOVA</div>
+    <div class="brand-sub">SECURE ACCESS TERMINAL</div>
+  </div>
+
+  <div id="error" class="error"></div>
+  <div id="success" style="color: var(--accent); font-size: 11px; margin-bottom: 20px; font-family: 'JetBrains Mono', monospace; display: none;"></div>
+  
+  <input id="fullName" placeholder="FULL NAME" style="display:none;">
+  <input id="email" type="email" placeholder="CORPORATE EMAIL">
+  <input id="password" type="password" placeholder="PASSWORD">
+  
+  <button id="authBtn">Sign In</button>
+  
+  <div id="forgotPassword" class="toggle-link" style="margin-top: 10px; margin-bottom: 10px;">
+    Forgot Password?
+  </div>
+
+  <div id="toggleAuth" class="toggle-link">
+    Request Access Credentials
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyD5nYX4Wpj0OfbOJo2i3r_lD2Z11rq1RT0",
+  authDomain:"hotel-payroll-markii-e21fd.firebaseapp.com",
+  projectId:"hotel-payroll-markii-e21fd"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const hotelId = "baymont_springfield";
+
+// 1. FORCE TOKEN CAPTURE (TOP OF SCRIPT)
+const urlParams = new URLSearchParams(window.location.search);
+const inviteToken = urlParams.get("invite");
+console.log("[DEBUG] Invite token:", inviteToken);
+
+const toggleAuth = document.getElementById("toggleAuth");
+const forgotPassword = document.getElementById("forgotPassword");
+const fullNameInput = document.getElementById("fullName");
+const authBtn = document.getElementById("authBtn");
+const errorDiv = document.getElementById("error");
+const successDiv = document.getElementById("success");
+const loading = document.getElementById("loading");
+
+let isSignUp = false;
+let loginAttempts = 0;
+let lockoutUntil = 0;
+
+// --- Session Protection ---
+let sessionTimeout;
+function resetTimer() {
+  clearTimeout(sessionTimeout);
+  sessionTimeout = setTimeout(() => {
+    if (auth.currentUser) {
+      console.log("[SESSION] Auto logout due to inactivity");
+      signOut(auth);
+    }
+  }, 30 * 60 * 1000);
+}
+["click", "mousemove", "keydown"].forEach(e => document.addEventListener(e, resetTimer));
+resetTimer();
+
+// 6. OPTIONAL BUT IMPORTANT: Auto-fill email from invite and disable editing
+if (inviteToken) {
+  isSignUp = true;
+  fullNameInput.style.display = "block";
+  authBtn.innerText = "Create Profile";
+  toggleAuth.innerText = "Already have credentials? Sign in";
+  
+  const q = query(collection(db, "hotels", hotelId, "invites"), where("token", "==", inviteToken), where("status", "==", "pending"));
+  getDocs(q).then(snap => {
+    if (!snap.empty) {
+      const inviteData = snap.docs[0].data();
+      document.getElementById("email").value = inviteData.email;
+      document.getElementById("email").disabled = true;
+      console.log("[INVITE] Email pre-filled from token:", inviteData.email);
+    }
+  });
+}
+
+onAuthStateChanged(auth, async (user) => {
+  // 2. BLOCK AUTO REDIRECT IF INVITE TOKEN EXISTS
+  if (user && !inviteToken) {
+    console.log(`[AUTH] User detected: ${user.email} (${user.uid})`);
+    
+    loading.style.display = "flex";
+    
+    // Check if profile exists by UID
+    let docRef = doc(db, "hotels", hotelId, "employees", user.uid);
+    let snap = await getDoc(docRef);
+    
+    if (!snap.exists() || snap.data().status === "disabled") {
+      console.log(`[AUTH] Access denied for ${user.email}. Doc exists: ${snap.exists()}`);
+      loading.style.display = "none";
+      await signOut(auth);
+      errorDiv.innerText = "ACCESS DENIED: ACCOUNT INACTIVE OR NOT FOUND.";
+      errorDiv.style.display = "block";
+      return;
+    }
+    
+    const role = snap.data().role;
+    console.log(`[AUTH] Login successful. Role: ${role}`);
+    window.location.href = (role === "manager") ? "manager.html" : "terminal.html";
+  } else {
+    loading.style.display = "none";
+  }
+});
+
+toggleAuth.onclick = () => {
+  isSignUp = !isSignUp;
+  fullNameInput.style.display = isSignUp ? "block" : "none";
+  authBtn.innerText = isSignUp ? "Create Profile" : "Sign In";
+  toggleAuth.innerText = isSignUp ? "Already have credentials? Sign in" : "Request Access Credentials";
+  errorDiv.style.display = "none";
+  successDiv.style.display = "none";
+};
+
+forgotPassword.onclick = async () => {
+  const email = document.getElementById("email").value.toLowerCase().trim();
+  if (!email) {
+    errorDiv.innerText = "ENTER EMAIL TO RESET PASSWORD";
+    errorDiv.style.display = "block";
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    successDiv.innerText = "PASSWORD RESET EMAIL SENT";
+    successDiv.style.display = "block";
+    errorDiv.style.display = "none";
+  } catch (e) {
+    errorDiv.innerText = "ERROR: " + e.message.toUpperCase();
+    errorDiv.style.display = "block";
+    successDiv.style.display = "none";
+  }
+};
+
+authBtn.onclick = async () => {
+  const email = document.getElementById("email").value.toLowerCase().trim();
+  const password = document.getElementById("password").value;
+  const name = fullNameInput.value;
+  
+  errorDiv.style.display = "none";
+  successDiv.style.display = "none";
+
+  // Rate Limiting
+  if (Date.now() < lockoutUntil) {
+    errorDiv.innerText = "TOO MANY ATTEMPTS. WAIT 30 SECONDS.";
+    errorDiv.style.display = "block";
+    return;
+  }
+  
+  try {
+    if (isSignUp) {
+      if (!name) throw new Error("Full Name required for provisioning.");
+      
+      // 3. USE inviteToken VARIABLE (NOT re-reading URL)
+      const token = inviteToken;
+      
+      // 4. ADD HARD DEBUG ERROR
+      if (!token) {
+        console.error("[INVITE ERROR] No token found in URL");
+        throw new Error("INVITE TOKEN REQUIRED FOR SIGNUP");
+      }
+
+      const invitesRef = collection(db, "hotels", hotelId, "invites");
+      const q = query(invitesRef, where("token", "==", token), where("status", "==", "pending"));
+      const inviteSnap = await getDocs(q);
+
+      // 5. MAKE INVITE MATCH VISIBLE
+      console.log("[INVITE DEBUG] Found invites:", inviteSnap.size);
+
+      if (inviteSnap.empty) {
+        throw new Error("ACCESS DENIED: INVALID OR EXPIRED INVITE");
+      }
+
+      const inviteDoc = inviteSnap.docs[0];
+      const inviteData = inviteDoc.data();
+
+      // Check Expiry
+      if (inviteData.expiresAt && inviteData.expiresAt.toDate() < new Date()) {
+        throw new Error("ACCESS DENIED: INVITE EXPIRED");
+      }
+
+      // Signup
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+      console.log(`[SIGNUP] Auth user created: ${user.uid}`);
+      
+      // Create employee profile
+      await setDoc(doc(db, "hotels", hotelId, "employees", user.uid), {
+        name,
+        email,
+        role: inviteData.role || "employee",
+        status: "active",
+        hotelId,
+        uid: user.uid,
+        createdAt: serverTimestamp()
+      });
+
+      // Mark invite as used
+      await updateDoc(inviteDoc.ref, { status: "used" });
+
+      successDiv.innerText = "SIGNUP SUCCESSFUL. YOU MAY NOW SIGN IN.";
+      successDiv.style.display = "block";
+      
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+      loginAttempts = 0; // Reset on success
+    }
+  } catch (e) {
+    console.error(`[AUTH] Error:`, e);
+    loginAttempts++;
+    if (loginAttempts > 5) {
+      lockoutUntil = Date.now() + 30 * 1000;
+      loginAttempts = 0;
+    }
+
+    if (e.code === 'auth/email-already-in-use') {
+      errorDiv.innerText = "Account already exists. Please log in instead.";
+    } else {
+      errorDiv.innerText = "ACCESS DENIED: " + e.message.toUpperCase();
+    }
+    errorDiv.style.display = "block";
+  }
+};
+
+</script>
+</body>
+</html>
