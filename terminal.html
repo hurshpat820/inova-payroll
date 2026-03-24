@@ -96,7 +96,14 @@ body {
 }
 
 .status-in { color: var(--accent); }
+.status-in #statusDot { animation: pulse-dot 1.5s infinite; }
 .status-out { color: var(--danger); }
+
+@keyframes pulse-dot {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
 
 /* Clock Controls */
 .clock-section {
@@ -107,10 +114,12 @@ body {
 
 .digital-clock {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 80px;
+  font-size: 92px;
   font-weight: 500;
   margin-bottom: 40px;
   letter-spacing: -2px;
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
 }
 
 .btn-group {
@@ -131,6 +140,10 @@ body {
   letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.clock-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
 }
 
 .btn-in:hover:not(:disabled) { background: var(--accent); color: #000; border-color: var(--accent); }
@@ -164,13 +177,14 @@ body {
 }
 
 .history-section h3 {
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 3px;
-  opacity: 0.3;
+  letter-spacing: 2px;
+  opacity: 0.5;
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+  font-weight: 600;
 }
 
 table {
@@ -202,6 +216,16 @@ tbody tr:hover { background: rgba(0,255,65,0.05); }
 .live-row {
   color: var(--accent);
   font-weight: 800;
+}
+
+.live-row td:nth-child(3) {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
 }
 
 .total-row td {
@@ -265,13 +289,13 @@ tbody tr:hover { background: rgba(0,255,65,0.05); }
     </div>
   </div>
   
-  <button id="logoutBtn" class="logout-btn">TERMINATE SESSION</button>
+  <button id="logoutBtn" class="logout-btn">SIGN OUT</button>
 </div>
 
 <div class="main-content">
   <div class="branding">
     <div class="brand-name">INOVA</div>
-    <div class="brand-sub">WORKFORCE MANAGEMENT</div>
+    <div class="brand-sub">EMPLOYEE PORTAL</div>
   </div>
   <div class="clock-section">
     <div id="digitalClock" class="digital-clock">00:00:00</div>
@@ -279,7 +303,7 @@ tbody tr:hover { background: rgba(0,255,65,0.05); }
       <button id="inBtn" class="clock-btn btn-in" disabled>CLOCK IN</button>
       <button id="outBtn" class="clock-btn btn-out" disabled>CLOCK OUT</button>
     </div>
-    <button id="undoBtn" class="undo-btn">UNDO LAST ACTION</button>
+    <button id="undoBtn" class="undo-btn">UNDO LAST ENTRY</button>
   </div>
 
   <div class="history-section">
@@ -342,11 +366,12 @@ function formatStopwatch(hoursDecimal) {
 }
 
 // Digital Clock & Real-time Updates
-setInterval(() => {
+function updateClock() {
   const now = new Date();
   document.getElementById("digitalClock").innerText = now.toLocaleTimeString('en-US', { hour12: true });
-  
-  // Real-time status text update if clocked in
+}
+
+function updateStatusText() {
   if (currentLogs.length > 0) {
     const last = currentLogs[currentLogs.length - 1];
     if (last && last.type === "clockIn") {
@@ -355,7 +380,12 @@ setInterval(() => {
       document.getElementById("statusText").innerText = `ACTIVE — ${formatStopwatch(liveHours)}`;
     }
   }
-}, 60000);
+}
+
+updateClock();
+updateStatusText();
+setInterval(updateClock, 1000);
+setInterval(updateStatusText, 60000);
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
