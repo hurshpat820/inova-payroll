@@ -89,7 +89,7 @@ body {
   padding: 12px 15px;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 13px;
   font-weight: 600;
   color: rgba(255,255,255,0.4);
@@ -97,7 +97,11 @@ body {
   letter-spacing: 1px;
 }
 
-.nav-item:hover { color: var(--ink); background: rgba(255,255,255,0.05); }
+.nav-item:hover { 
+  color: var(--ink); 
+  background: rgba(255,255,255,0.08);
+  transform: translateX(4px);
+}
 .nav-item.active { color: var(--accent); background: rgba(0,255,65,0.05); }
 
 /* Cards */
@@ -120,6 +124,12 @@ body {
   padding: 0; /* Remove padding to allow table to span full width */
   margin-bottom: 40px;
   overflow: visible;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(0, 255, 65, 0.15);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.03);
 }
 
 /* Warnings */
@@ -260,7 +270,8 @@ select, input {
   display: none;
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(4px);
   z-index: 1000;
   align-items: center;
   justify-content: center;
@@ -304,6 +315,27 @@ select, input {
 .timesheet-highlight td:first-child {
   border-left: 3px solid var(--danger);
 }
+.abnormalities-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.abnormalities-header::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--danger);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--danger);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
 </style>
 </head>
 <body>
@@ -314,18 +346,18 @@ select, input {
   <div class="nav-item" onclick="showSection('export')">Data Export</div>
   <div class="nav-item" onclick="showSection('auditHistory')">Audit History</div>
   
-  <button id="logoutBtn" class="btn" style="margin-top: auto;">Terminate Session</button>
+  <button id="logoutBtn" class="btn" style="margin-top: auto;">Sign Out</button>
 </div>
 
 <div class="main-content">
   <div class="branding">
     <div class="brand-name">INOVA</div>
-    <div class="brand-sub">MANAGEMENT INTERFACE</div>
+    <div class="brand-sub">OPERATIONS CENTER</div>
   </div>
   
   <!-- DASHBOARD -->
   <div id="dashboardSection">
-    <div class="section-header">System Abnormalities</div>
+    <div class="section-header abnormalities-header">System Abnormalities</div>
     <div id="warningContainer"></div>
 
     <div class="section-header">
@@ -388,14 +420,14 @@ select, input {
 
   <!-- EXPORT -->
   <div id="exportSection" style="display:none;">
-    <div class="section-header">Data Pipeline</div>
+    <div class="section-header">Payroll Export</div>
     <div class="card">
       <p style="opacity: 0.5; font-size: 13px; margin-bottom: 20px;">Export logs for the selected pay period to the corporate ledger.</p>
       <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
         <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">Select Pay Period:</label>
         <select id="exportPPSelector" style="flex: 1;"></select>
       </div>
-      <button class="btn btn-primary" onclick="handleExport()">Execute Export</button>
+      <button class="btn btn-primary" onclick="handleExport()">Export to Ledger</button>
       <div id="exportStatus" style="margin-top: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent);"></div>
     </div>
   </div>
@@ -450,7 +482,7 @@ select, input {
       <input id="newEmpName" placeholder="Full Name">
       <input id="newEmpEmail" placeholder="Corporate Email">
       <input id="newEmpHourlyRate" type="number" step="0.01" placeholder="Hourly Rate ($)">
-      <button class="btn btn-primary" onclick="addEmployee()">Initialize Profile</button>
+      <button class="btn btn-primary" onclick="addEmployee()">Create Profile</button>
       <button class="btn" onclick="closeAddModal()">Cancel</button>
     </div>
   </div>
@@ -541,7 +573,7 @@ select, input {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, writeBatch, addDoc, serverTimestamp, Timestamp, limit, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -554,12 +586,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const hotelId = "baymont_springfield";
-const SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzx6viDKJDph2tu_PxFDhHT54Y1Oou1iZXRvdWj9nuT1dUvppN5F1AK82c8rwdyZd8s7g/exec";
+const SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwJuCxm5e0_dKJIRpmE7xgFCYNgQQFjU_JgGj77oknLsTDXpS8bKvwWW_xDGofcuoq9qA/exec";
 
 let currentUserProfile = null;
 let targetDeleteUid = null;
 let currentAuditUid = null;
-const dismissedWarnings = new Set();
+const savedDismissed = JSON.parse(localStorage.getItem('dismissedWarnings') || '[]');
+const dismissedWarnings = new Set(savedDismissed);
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -585,36 +618,20 @@ function initDashboard() {
   populateExportPPSelector();
 }
 
-async function populateExportPPSelector() {
-  const sel = document.getElementById("exportPPSelector");
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Loading periods...</option>';
+function populateExportPPSelector() {
+  const mainSel = document.getElementById("ppSelector");
+  const exportSel = document.getElementById("exportPPSelector");
+  if (!mainSel || !exportSel) return;
   
-  try {
-    const logSnap = await getDocs(collection(db, "hotels", hotelId, "logs"));
-    const periods = new Set();
-    logSnap.forEach(d => {
-      if (d.data().payPeriodId) periods.add(d.data().payPeriodId);
-    });
-    
-    const sortedPeriods = Array.from(periods).sort().reverse();
-    sel.innerHTML = "";
-    
-    if (sortedPeriods.length === 0) {
-      sel.innerHTML = '<option value="">No logs found</option>';
-      return;
+  exportSel.innerHTML = '<option value="">Select Pay Period...</option>';
+  Array.from(mainSel.options).forEach(opt => {
+    if (opt.value) {
+      const newOpt = document.createElement("option");
+      newOpt.value = opt.value;
+      newOpt.innerText = opt.innerText;
+      exportSel.appendChild(newOpt);
     }
-    
-    sortedPeriods.forEach(pp => {
-      const info = getPeriodInfo(pp);
-      const opt = document.createElement("option");
-      opt.value = pp;
-      opt.textContent = info.label;
-      sel.appendChild(opt);
-    });
-  } catch (e) {
-    sel.innerHTML = '<option value="">Error loading</option>';
-  }
+  });
 }
 
 window.showSection = (section) => {
@@ -742,6 +759,7 @@ async function loadData() {
       }
     });
 
+    // Fix 3: IDs are assigned to warnings before renderWarnings is called
     warnings.forEach(w => {
       w.id = (w.name + '_' + w.msg).replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
     });
@@ -788,6 +806,7 @@ function renderWarnings(warnings) {
     const btn = div.querySelector('.btn-clear');
     btn.onclick = () => {
       dismissedWarnings.add(w.id);
+      localStorage.setItem('dismissedWarnings', JSON.stringify([...dismissedWarnings]));
       const countEl = document.getElementById('abnormalityCount');
       if (countEl) {
         let count = parseInt(countEl.innerText) - 1;
@@ -993,37 +1012,77 @@ window.handleExport = async () => {
   const status = document.getElementById("exportStatus");
   status.innerText = "INITIALIZING EXPORT PIPELINE...";
 
-  const logSnap = await getDocs(query(collection(db, "hotels", hotelId, "logs"), where("payPeriodId", "==", pp)));
-  const logs = [];
-  logSnap.forEach(d => {
-    const data = d.data();
-    logs.push({
-      name: data.name,
-      type: data.type,
-      timestamp: data.timestamp.toDate().toLocaleString(),
-      payPeriod: info.label
-    });
-  });
-
-  if (logs.length === 0) {
-    status.innerText = "ERROR: NO DATA FOUND FOR PERIOD.";
-    return;
-  }
-
-  // Group by employee name and sort by timestamp
-  logs.sort((a, b) => a.name.localeCompare(b.name) || new Date(a.timestamp) - new Date(b.timestamp));
-
   try {
-    const res = await fetch(SHEETS_WEBHOOK_URL, {
+    const [empSnap, logSnap] = await Promise.all([
+      getDocs(collection(db, "hotels", hotelId, "employees")),
+      getDocs(query(collection(db, "hotels", hotelId, "logs"), where("payPeriodId", "==", pp)))
+    ]);
+
+    const employees = {};
+    empSnap.forEach(d => {
+      const data = d.data();
+      if (data.status !== "disabled") {
+        employees[d.id] = {
+          name: data.name || "Unknown",
+          email: data.email || "",
+          role: data.role || "employee",
+          hourlyRate: data.hourlyRate || 0,
+          sessions: [],
+          totalHours: 0,
+          totalPay: 0
+        };
+      }
+    });
+
+    const logs = [];
+    logSnap.forEach(d => logs.push(d.data()));
+    logs.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+    const pending = {};
+    logs.forEach(l => {
+      if (!employees[l.uid]) return;
+      if (l.type === "clockIn") {
+        pending[l.uid] = l.timestamp?.toDate();
+      } else if (l.type === "clockOut" && pending[l.uid]) {
+        const start = pending[l.uid];
+        const end = l.timestamp?.toDate();
+        const hours = (end - start) / (1000 * 60 * 60);
+        employees[l.uid].sessions.push({
+          date: start.toLocaleDateString(),
+          clockIn: start.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
+          clockOut: end.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
+          hours: parseFloat(hours.toFixed(2))
+        });
+        employees[l.uid].totalHours += hours;
+        pending[l.uid] = null;
+      }
+    });
+
+    Object.values(employees).forEach(e => {
+      e.totalHours = parseFloat(e.totalHours.toFixed(2));
+      e.totalPay = parseFloat((e.totalHours * e.hourlyRate).toFixed(2));
+    });
+
+    const exportPayload = {
+      payPeriod: info.label,
+      generatedAt: new Date().toLocaleString(),
+      employees: Object.values(employees)
+        .filter(e => e.sessions.length > 0)
+        .sort((a, b) => a.name.localeCompare(b.name))
+    };
+
+    if (exportPayload.employees.length === 0) {
+      status.innerText = "ERROR: NO DATA FOUND FOR PERIOD.";
+      return;
+    }
+
+    await fetch(SHEETS_WEBHOOK_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        sheetName: "INOVA Payroll Report", 
-        payPeriod: info.label,
-        logs: logs 
-      })
+      body: JSON.stringify(exportPayload)
     });
+
     status.innerText = "EXPORT SUCCESSFUL. DATA TRANSMITTED TO LEDGER.";
   } catch (e) {
     status.innerText = "CRITICAL ERROR: " + e.message.toUpperCase();
@@ -1365,6 +1424,26 @@ document.getElementById("generateInviteBtn").onclick = async () => {
       expiresAt: Timestamp.fromDate(expiresAt),
       createdAt: serverTimestamp()
     });
+
+    const inviteUrl = "https://hurshpat820.github.io/inova-payroll/index.html?invite=" + token;
+    document.getElementById("inviteLinkDisplay").value = inviteUrl;
+    document.getElementById("inviteLinkContainer").style.display = "block";
+    document.getElementById("inviteSuccessMsg").innerText = "INVITE READY — SEND THIS LINK TO THE EMPLOYEE";
+  } catch (e) {
+    alert("Error generating invite: " + e.message);
+  }
+};
+
+document.getElementById("copyInviteBtn").onclick = () => {
+  const link = document.getElementById("inviteLinkDisplay");
+  link.select();
+  document.execCommand("copy");
+  alert("Link copied to clipboard");
+};
+
+</script>
+</body>
+</html>
 
     const inviteUrl = "https://hurshpat820.github.io/inova-payroll/index.html?invite=" + token;
     document.getElementById("inviteLinkDisplay").value = inviteUrl;
