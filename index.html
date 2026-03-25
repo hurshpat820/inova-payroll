@@ -388,13 +388,10 @@ authBtn.onclick = async () => {
       await updateDoc(inviteDoc.ref, { status: "used" });
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      successDiv.innerText = "SIGNUP SUCCESSFUL. YOU MAY NOW SIGN IN.";
+      successDiv.innerText = "SIGNUP SUCCESSFUL. REDIRECTING TO LOGIN...";
       successDiv.style.display = "block";
-      isSignUp = false;
-      fullNameInput.style.display = "none";
-      authBtn.innerText = "Sign In";
-      toggleAuth.innerText = "New Employee? Get Started";
-      document.getElementById("password").value = "";
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      window.location.href = "https://hurshpat820.github.io/inova-payroll/index.html";
       
     } else {
       await signInWithEmailAndPassword(auth, email, password);
