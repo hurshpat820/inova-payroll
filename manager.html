@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>INOVA — MANAGEMENT</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #050505;
+  --card: #0a0a0a;
+  --ink: #ffffff;
+  --accent: #00ff41;
+  --danger: #ff4444;
+  --warning: #ffcc00;
+  --secondary: #888888;
+  --border: #1a1a1a;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Global Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 300px;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.main-content {
+  flex: 1;
+  padding: 120px 60px 60px 60px;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Branding */
+.branding {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.brand-sub {
+  font-size: 9px;
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+}
+
+/* Nav */
+.nav-item {
+  padding: 12px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nav-item:hover { 
+  color: var(--ink); 
+  background: rgba(255,255,255,0.08);
+  transform: translateX(4px);
+}
+.nav-item.active { color: var(--accent); background: rgba(0,255,65,0.05); }
+
+/* Cards */
+.section-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  opacity: 0.3;
+  margin-bottom: 25px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 0; /* Remove padding to allow table to span full width */
+  margin-bottom: 40px;
+  overflow: visible;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(0, 255, 65, 0.15);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.03);
+}
+
+/* Warnings */
+.warning-box {
+  border-left: 3px solid var(--warning);
+  background: rgba(255, 170, 0, 0.05);
+  padding: 15px 20px;
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.warning-icon { color: var(--warning); font-weight: 800; }
+
+/* Tables */
+.table-wrapper {
+  width: 100%;
+  overflow-x: visible;
+}
+
+.timesheet-wrapper, .audit-history-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 20px 25px;
+  opacity: 0.4;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 18px 25px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Buttons */
+.btn {
+  padding: 10px 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--ink);
+  transition: all 0.2s;
+}
+
+.btn-primary { border-color: var(--accent); color: var(--accent); }
+.btn-primary:hover { background: var(--accent); color: #000; }
+.btn-danger { border-color: var(--danger); color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  color: var(--accent);
+  background: rgba(0, 255, 65, 0.1);
+}
+
+.btn-icon-danger:hover {
+  color: var(--danger);
+  background: rgba(255, 0, 0, 0.1);
+}
+
+.btn-clear {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  padding: 4px 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-clear:hover {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: rgba(255, 68, 68, 0.3);
+}
+
+/* Inputs */
+select, input {
+  background: #000;
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #050505;
+  border: 1px solid var(--border);
+  padding: 40px;
+  width: 400px;
+}
+
+/* Warning System Enhancements */
+.warning-summary {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  margin-bottom: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.warning-box {
+  transition: opacity 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+  overflow: hidden;
+  position: relative;
+}
+.warning-box.danger {
+  border-left: 3px solid var(--danger);
+  background: rgba(255, 0, 0, 0.05);
+}
+.warning-box.danger .warning-icon {
+  color: var(--danger);
+}
+.fade-out {
+  opacity: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  pointer-events: none;
+}
+.timesheet-highlight td:first-child {
+  border-left: 3px solid var(--danger);
+}
+.abnormalities-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.abnormalities-header::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--danger);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--danger);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Operations Intelligence */
+.staffing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 30px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.staffing-stat {
+  border-left: 2px solid var(--accent);
+  padding-left: 15px;
+}
+
+.staffing-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-bottom: 5px;
+}
+
+.staffing-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  color: var(--accent);
+}
+
+.intel-input-group {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.intel-input-wrapper {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* New Features Styling */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.status-badge.optimal { background: rgba(0, 255, 65, 0.2); color: var(--accent); }
+.status-badge.review { background: rgba(255, 170, 0, 0.2); color: var(--warning); }
+.status-badge.action { background: rgba(255, 0, 0, 0.2); color: var(--danger); }
+
+.intel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.schedule-grid-table th, .schedule-grid-table td {
+  text-align: center;
+  padding: 12px;
+}
+
+.dept-separator {
+  background: rgba(255,255,255,0.05);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--accent);
+}
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 14px 20px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  max-width: 360px;
+  pointer-events: none;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.success { border-left: 3px solid var(--accent); color: var(--accent); }
+.toast.error { border-left: 3px solid var(--danger); color: var(--danger); }
+.toast.warning { border-left: 3px solid var(--warning); color: var(--warning); }
+
+/* Confirm Dialog */
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+.confirm-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+.confirm-title {
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: var(--accent);
+}
+.confirm-msg {
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+  opacity: 0.8;
+}
+.confirm-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="nav-item active" onclick="showSection('dashboard')">Operations</div>
+  <div class="nav-item" onclick="showSection('schedule')">Schedule</div>
+  <div class="nav-item" onclick="showSection('employees')">Personnel</div>
+  <div class="nav-item" onclick="showSection('export')">Data Export</div>
+  <div class="nav-item" onclick="showSection('auditHistory')">Audit History</div>
+  
+  <button id="logoutBtn" class="btn" style="margin-top: auto;">Sign Out</button>
+</div>
+
+<div class="main-content">
+  <div class="branding">
+    <div class="brand-name">INOVA</div>
+    <div class="brand-sub">OPERATIONS CENTER</div>
+  </div>
+  
+  <!-- DASHBOARD -->
+  <div id="dashboardSection">
+    <div class="section-header abnormalities-header">System Abnormalities</div>
+    <div id="warningContainer"></div>
+
+    <div class="section-header">
+      Active Pay Period
+      <div style="display:flex; gap:10px; align-items:center;">
+        <select id="ppSelector"></select>
+        <button id="editRatesBtn" class="btn btn-sm" onclick="toggleRateEdit()" style="display:none; font-size:10px;">Edit Rates</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="table-wrapper timesheet-wrapper">
+        <table>
+          <thead id="timesheetHead"></thead>
+          <tbody id="timesheetBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div id="scheduleSection" style="display:none;">
+    <div class="section-header" style="opacity:1;">
+      Weekly Schedule
+      <span style="font-size:10px; opacity:0.4; font-weight:400; text-transform:none; letter-spacing:0;">Click any cell to edit. Double-click for custom time.</span>
+    </div>
+
+    <!-- Front Desk -->
+    <div style="font-size:10px; text-transform:uppercase; letter-spacing:2px; opacity:0.4; margin-bottom:10px;">Front Desk</div>
+    <div style="overflow-x:auto; margin-bottom:40px;">
+      <table class="schedule-grid-table" style="width:100%; border:1px solid var(--border);">
+        <thead>
+          <tr>
+            <th style="text-align:left; width:150px;">Employee</th>
+            <th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>SUN</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBodyFD"></tbody>
+      </table>
+    </div>
+
+    <!-- Additional Staff -->
+    <div style="font-size:10px; text-transform:uppercase; letter-spacing:2px; opacity:0.4; margin-bottom:10px;">Additional Staff</div>
+    <div style="overflow-x:auto; margin-bottom:40px;">
+      <table class="schedule-grid-table" style="width:100%; border:1px solid var(--border);">
+        <thead>
+          <tr>
+            <th style="text-align:left; width:150px;">Employee</th>
+            <th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>SUN</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBodyOther"></tbody>
+      </table>
+    </div>
+
+    <!-- Housekeeping -->
+    <div style="font-size:10px; text-transform:uppercase; letter-spacing:2px; opacity:0.4; margin-bottom:10px;">Housekeeping</div>
+    <div style="overflow-x:auto;">
+      <table class="schedule-grid-table" style="width:100%; border:1px solid var(--border);">
+        <thead>
+          <tr>
+            <th style="text-align:left; width:150px;">Employee</th>
+            <th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>SUN</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBodyHK"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PERSONNEL -->
+  <div id="employeesSection" style="display:none;">
+    <div class="section-header">
+      Active Personnel
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Employee Profile</button>
+    </div>
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Phone</th>
+              <th>Hourly Rate</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="activeEmployeeBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-top:40px;">Deactivated Personnel</div>
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Phone</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="formerEmployeeBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div id="exportSection" style="display:none;">
+    <div class="section-header">Payroll Export</div>
+    <div class="card">
+      <p style="opacity: 0.5; font-size: 13px; margin-bottom: 20px;">Export logs for the selected pay period to the corporate ledger.</p>
+      <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+        <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">Select Pay Period:</label>
+        <select id="exportPPSelector" style="flex: 1;"></select>
+      </div>
+      <button class="btn btn-primary" onclick="handleExport()">Export to Ledger</button>
+      <div id="exportStatus" style="margin-top: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent);"></div>
+    </div>
+  </div>
+
+  <!-- AUDIT HISTORY -->
+  <div id="auditHistorySection" style="display:none;">
+    <div class="section-header">
+      <span>Audit History</span>
+      <button class="btn-clear" onclick="clearAllAuditHistory()">Clear All Logs</button>
+    </div>
+    <div class="card">
+      <p style="opacity: 0.5; font-size: 13px; margin-bottom: 20px;">History of all manual edits made by managers.</p>
+      <div class="audit-history-wrapper">
+        <table style="width: 100%; min-width: 1200px; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="word-break: break-word; white-space: normal;">Manager</th>
+              <th style="word-break: break-word; white-space: normal;">Field</th>
+              <th style="word-break: break-word; white-space: normal;">Old Value</th>
+              <th style="word-break: break-word; white-space: normal;">New Value</th>
+              <th style="word-break: break-word; white-space: normal;">Target ID</th>
+              <th style="word-break: break-word; white-space: normal;">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="auditHistoryBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 style="color: var(--danger); text-transform: uppercase; letter-spacing: 2px;">Critical Action</h3>
+    <p style="font-size: 13px; opacity: 0.6; margin-bottom: 20px;">Permanently deleting personnel will erase all associated logs. This action is irreversible.</p>
+    <p style="font-size: 11px; color: var(--danger); margin-bottom: 10px; text-transform: uppercase;">Type "delete this employee" to confirm:</p>
+    <input type="text" id="confirmDeletePhrase" placeholder='Type "delete this employee"' style="width: 100%; box-sizing: border-box; margin-bottom: 20px;">
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-danger" id="finalDeleteBtn" style="flex: 1;">Confirm Deletion</button>
+      <button class="btn" onclick="closeDeleteModal()" style="flex: 1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div id="addModal" class="modal-overlay">
+  <div class="modal-content" style="width: 500px; max-height: 90vh; overflow-y: auto;">
+    <h3 style="text-transform: uppercase; letter-spacing: 2px;">Add Employee Profile</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+      <div style="grid-column: span 2;">
+        <label class="staffing-label">Full Name</label>
+        <input id="newEmpName" placeholder="John Doe" style="width:100%;">
+      </div>
+      <div>
+        <label class="staffing-label">Phone Number</label>
+        <input id="newEmpPhone" placeholder="555-0123" style="width:100%;">
+      </div>
+      <div>
+        <label class="staffing-label">Email Address</label>
+        <input id="newEmpEmail" placeholder="john@example.com" style="width:100%;">
+      </div>
+      <div>
+        <label class="staffing-label">Department</label>
+        <select id="newEmpDept" style="width:100%;">
+          <option value="Housekeeping">Housekeeping</option>
+          <option value="Front Desk">Front Desk</option>
+          <option value="Maintenance">Maintenance</option>
+          <option value="Management">Management</option>
+        </select>
+      </div>
+      <div>
+        <label class="staffing-label">Hourly Rate ($)</label>
+        <input id="newEmpHourlyRate" type="number" step="0.01" placeholder="15.00" style="width:100%;">
+      </div>
+      <div>
+        <label class="staffing-label">Hire Date</label>
+        <input id="newEmpHireDate" type="date" style="width:100%;">
+      </div>
+      <div>
+        <label class="staffing-label">SSN (Last 4)</label>
+        <input id="newEmpSSN" placeholder="1234" maxlength="4" style="width:100%;">
+      </div>
+      <div>
+        <label class="staffing-label">Emergency Contact</label>
+        <input id="newEmpEmergency" placeholder="Name/Phone" style="width:100%;">
+      </div>
+      <div style="grid-column: span 2; border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;">
+        <label class="staffing-label">Temporary Password</label>
+        <div style="display:flex; gap:10px;">
+          <input id="newEmpTempPass" placeholder="Auto-generated" style="flex:1;">
+          <button class="btn btn-sm" onclick="generateTempPassword()">Generate</button>
+        </div>
+        <p style="font-size:9px; opacity:0.5; margin-top:5px;">Employee will be prompted to change this upon first login.</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 25px;">
+      <button class="btn btn-primary" onclick="addEmployee()" style="flex:1;">Create Account</button>
+      <button class="btn" onclick="closeAddModal()" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Employee Profile View Modal -->
+<div id="profileModal" class="modal-overlay">
+  <div class="modal-content" style="width: 500px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h3 id="profileTitle" style="text-transform: uppercase; letter-spacing: 2px; margin:0;">Employee Profile</h3>
+      <span id="profileStatusBadge" class="status-badge optimal">Active</span>
+    </div>
+    <div id="profileDetails" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13px;">
+      <!-- Populated by JS -->
+    </div>
+    <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="btn btn-sm" id="viewLogsBtn">View Work Logs</button>
+      <button class="btn btn-sm" id="editProfileBtn">Edit Profile</button>
+      <button class="btn btn-sm" id="resetPassBtn">Reset Password</button>
+      <button class="btn btn-sm btn-danger" id="deactivateBtn">Deactivate</button>
+      <button class="btn btn-sm" onclick="closeProfileModal()" style="margin-left:auto;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Session Manager Modal -->
+<div id="auditModal" class="modal-overlay">
+  <div class="modal-content" style="width: 700px; max-height: 85vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 id="auditTitle" style="text-transform: uppercase; letter-spacing: 2px; margin: 0;">Work Sessions</h3>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-sm btn-primary" onclick="openAddSessionModal()">+ Add Session</button>
+        <button class="btn-clear" onclick="clearAuditLogs()">Clear All</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Clock In</th>
+            <th>Clock Out</th>
+            <th style="text-align:right;">Hours</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="auditLogBody"></tbody>
+      </table>
+    </div>
+    <button class="btn" onclick="closeAuditModal()" style="width: 100%; margin-top: 20px;">Close</button>
+  </div>
+</div>
+
+<!-- Add/Edit Session Modal -->
+<div id="sessionEditModal" class="modal-overlay">
+  <div class="modal-content" style="width: 420px;">
+    <h3 id="sessionEditTitle" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Edit Session</h3>
+    <div id="sessionInstructions" style="font-size: 10px; line-height: 1.7; opacity: 0.5; margin-bottom: 16px; border-left: 2px solid var(--border); padding-left: 10px;">
+      To add a full session: fill in both Clock In and Clock Out.<br>
+      To clock in an employee right now: fill in Clock In only (today's date only).<br>
+      Leave Clock Out blank to record an active clock-in with no end time.
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div>
+        <label class="staffing-label">Clock In</label>
+        <input id="sessionInTime" type="datetime-local" step="1" style="width: 100%; box-sizing: border-box;">
+      </div>
+      <div id="sessionOutWrapper">
+        <label class="staffing-label">Clock Out</label>
+        <input id="sessionOutTime" type="datetime-local" step="1" style="width: 100%; box-sizing: border-box;">
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button class="btn btn-primary" id="saveSessionBtn" style="flex: 1;">Save</button>
+      <button class="btn" onclick="closeSessionEditModal()" style="flex: 1;">Cancel</button>
+    </div>
+    <div id="sessionEditStatus" style="font-size:11px; font-family:'JetBrains Mono',monospace; margin-top:10px; display:none; text-align:center;"></div>
+  </div>
+</div>
+
+<!-- Edit Personnel Modal -->
+<div id="editEmpModal" class="modal-overlay">
+  <div class="modal-content" style="width:520px; max-height:90vh; overflow-y:auto;">
+    <h3 style="text-transform:uppercase; letter-spacing:2px; margin-bottom:25px;">Edit Employee Profile</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div style="grid-column:span 2;">
+        <label class="staffing-label">Full Name</label>
+        <input id="editEmpName" placeholder="Full Name" style="width:100%; box-sizing:border-box;">
+      </div>
+      <div>
+        <label class="staffing-label">Phone Number</label>
+        <input id="editEmpPhone" placeholder="(555) 555-5555" style="width:100%; box-sizing:border-box;">
+      </div>
+      <div>
+        <label class="staffing-label">Email Address</label>
+        <input id="editEmpEmail" placeholder="email@example.com" style="width:100%; box-sizing:border-box;">
+      </div>
+      <div>
+        <label class="staffing-label">Department</label>
+        <select id="editEmpDept" style="width:100%; box-sizing:border-box;">
+          <option value="">Select Department</option>
+          <option value="Front Desk">Front Desk</option>
+          <option value="Housekeeping">Housekeeping</option>
+          <option value="Maintenance">Maintenance</option>
+          <option value="Management">Management</option>
+        </select>
+      </div>
+      <div>
+        <label class="staffing-label">Hourly Rate ($)</label>
+        <input id="editEmpHourlyRate" type="number" step="0.01" placeholder="0.00" style="width:100%; box-sizing:border-box;">
+      </div>
+      <div>
+        <label class="staffing-label">Hire Date</label>
+        <input id="editEmpHireDate" type="date" style="width:100%; box-sizing:border-box;">
+      </div>
+      <div>
+        <label class="staffing-label">SSN Last 4 Digits</label>
+        <input id="editEmpSSN" type="password" maxlength="4" placeholder="****" style="width:100%; box-sizing:border-box;">
+      </div>
+      <div style="grid-column:span 2;">
+        <label class="staffing-label">Emergency Contact</label>
+        <input id="editEmpEmergency" placeholder="Name — (555) 555-5555" style="width:100%; box-sizing:border-box;">
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn btn-primary" id="saveEmpBtn" style="flex:1;">Save Changes</button>
+      <button class="btn" onclick="closeEditEmpModal()" style="flex:1;">Cancel</button>
+    </div>
+    <div id="editEmpStatus" style="font-size:11px; font-family:'JetBrains Mono',monospace; margin-top:10px; display:none; text-align:center;"></div>
+  </div>
+</div>
+
+<!-- Removed Invite Modal -->
+
+  <!-- Toast & Confirm -->
+  <div id="toastEl" class="toast"></div>
+  <div id="confirmOverlay" class="confirm-overlay">
+    <div class="confirm-box">
+      <div id="confirmTitle" class="confirm-title">Confirm Action</div>
+      <div id="confirmMsg" class="confirm-msg">Are you sure?</div>
+      <div class="confirm-btns">
+        <button class="btn" style="background:transparent; border:1px solid var(--border);" onclick="closeConfirm(false)">Cancel</button>
+        <button id="confirmYesBtn" class="btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, writeBatch, addDoc, serverTimestamp, Timestamp, limit, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyD5nYX4Wpj0OfbOJo2i3r_lD2Z11rq1RT0",
+  authDomain:"hotel-payroll-markii-e21fd.firebaseapp.com",
+  projectId:"hotel-payroll-markii-e21fd"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const hotelId = "baymont_springfield";
+const TOTAL_ROOMS = 96;
+const SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwJuCxm5e0_dKJIRpmE7xgFCYNgQQFjU_JgGj77oknLsTDXpS8bKvwWW_xDGofcuoq9qA/exec";
+
+let currentUserProfile = null;
+let rateEditMode = false;
+let targetDeleteUid = null;
+let currentAuditUid = null;
+const savedDismissed = JSON.parse(localStorage.getItem('dismissedWarnings') || '[]');
+const dismissedWarnings = new Set(savedDismissed);
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+  
+  const docRef = doc(db, "hotels", hotelId, "employees", user.uid);
+  const snap = await getDoc(docRef);
+  
+  if (!snap.exists() || snap.data().role !== "manager" || snap.data().status === "disabled") {
+    window.location.href = "index.html";
+    return;
+  }
+  
+  currentUserProfile = snap.data();
+  initDashboard();
+});
+
+function initDashboard() {
+  setupPPSelector();
+  loadData();
+  populateExportPPSelector();
+}
+
+function populateExportPPSelector() {
+  const mainSel = document.getElementById("ppSelector");
+  const exportSel = document.getElementById("exportPPSelector");
+  if (!mainSel || !exportSel) return;
+  
+  exportSel.innerHTML = '<option value="">Select Pay Period...</option>';
+  Array.from(mainSel.options).forEach(opt => {
+    if (opt.value) {
+      const newOpt = document.createElement("option");
+      newOpt.value = opt.value;
+      newOpt.innerText = opt.innerText;
+      exportSel.appendChild(newOpt);
+    }
+  });
+}
+
+window.showSection = (section) => {
+  ['dashboard', 'employees', 'export', 'auditHistory', 'schedule'].forEach(s => {
+    const el = document.getElementById(s + 'Section');
+    if (el) el.style.display = s === section ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+    const text = item.innerText.toLowerCase();
+    const isMatch = (section === 'dashboard' && text.includes('operations')) ||
+                    (section === 'employees' && text.includes('personnel')) ||
+                    (section === 'export' && text.includes('export')) ||
+                    (section === 'auditHistory' && text.includes('audit')) ||
+                    (section === 'schedule' && text.includes('schedule'));
+    if (isMatch) item.classList.add('active');
+  });
+  if (section === 'auditHistory') loadAuditHistory();
+  if (section === 'schedule') loadSchedule();
+};
+
+function setupPPSelector() {
+  const sel = document.getElementById("ppSelector");
+  const now = new Date();
+  const currentPP = payPeriodId(now);
+  
+  // Generate 26 periods: 4 in the past, 22 in the future
+  const anchor = new Date(2026, 0, 1);
+  const diff = Math.floor((now - anchor) / (1000 * 60 * 60 * 24));
+  const currentP = Math.floor(diff / 14);
+
+  for(let i = currentP - 4; i <= currentP + 22; i++) {
+    const periodStart = new Date(anchor);
+    periodStart.setDate(periodStart.getDate() + i * 14);
+    const val = `${periodStart.getFullYear()}_PP_${String(i).padStart(2,"0")}`;
+    const info = getPeriodInfo(val);
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = info.label;
+    if(val === currentPP) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.onchange = loadData;
+}
+
+function parseShiftTime(shiftStr, date) {
+  // Returns { startMinutes, endMinutes } in minutes from midnight
+  // date is used to handle 11p-7a overnight shifts
+  if (!shiftStr || shiftStr === 'OFF') return null;
+
+  // Normalize: remove spaces, lowercase
+  const s = shiftStr.toLowerCase().trim();
+
+  // Try to parse range like "7a-3p", "3p-11p", "11p-7a", "9a-5p", "7a-3p"
+  const rangeMatch = s.match(/^(\d+(?::\d+)?[ap]?)-(\d+(?::\d+)?[ap]?)$/);
+  if (rangeMatch) {
+    const start = parseTimeStr(rangeMatch[1]);
+    let end = parseTimeStr(rangeMatch[2]);
+    if (start === null || end === null) return null;
+    // Handle overnight: if end <= start, end is next day
+    if (end <= start) end += 24 * 60;
+    return { startMinutes: start, endMinutes: end };
+  }
+
+  // Single time like "9", "9a", "10a" — treat as start time, assume 8hr shift
+  const single = parseTimeStr(s);
+  if (single !== null) {
+    return { startMinutes: single, endMinutes: single + 8 * 60 };
+  }
+
+  return null;
+}
+
+function parseTimeStr(t) {
+  // Parses "7a", "3p", "11p", "9", "7:30a", "14" etc → minutes from midnight
+  if (!t) return null;
+  t = t.toLowerCase().trim();
+  let isPM = t.includes('p');
+  let isAM = t.includes('a');
+  t = t.replace(/[ap]/g, '');
+  let [h, m] = t.split(':').map(Number);
+  if (isNaN(h)) return null;
+  m = m || 0;
+  if (isPM && h !== 12) h += 12;
+  if (isAM && h === 12) h = 0;
+  // If no am/pm and hour <= 6, assume PM (e.g. "3" = 3pm, "9" = 9am)
+  if (!isPM && !isAM) {
+    if (h >= 1 && h <= 6) h += 12;
+  }
+  return h * 60 + m;
+}
+
+function getDayKey(date) {
+  const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  return days[date.getDay()];
+}
+
+async function loadData() {
+  if (loadData.running) return;
+  loadData.running = true;
+  try {
+    const pp = document.getElementById("ppSelector").value;
+    const info = getPeriodInfo(pp);
+    
+    // Optimized Queries: Always filter by payPeriodId where applicable
+    const [empSnap, logSnap, rateSnap] = await Promise.all([
+      getDocs(collection(db, "hotels", hotelId, "employees")),
+      getDocs(collection(db, "hotels", hotelId, "logs")),
+      getDocs(query(collection(db, "hotels", hotelId, "rateSnapshots"), where("payPeriodId", "==", pp)))
+    ]);
+
+    const emps = {};
+    const activeEmps = [];
+    const formerEmps = [];
+    const rateMap = {};
+    
+    rateSnap.forEach(d => {
+      const data = d.data();
+      rateMap[data.uid] = data.rate;
+    });
+    
+    const batch = writeBatch(db);
+    let needsBatch = false;
+
+    empSnap.forEach(d => {
+      const data = d.data();
+      emps[d.id] = {
+        ...data,
+        uid: d.id, // ✅ CRITICAL FIX
+        name: data.name || "Unknown",
+        email: data.email || "—",
+        role: data.role || "employee",
+        status: data.status || "active",
+        days: new Array(14).fill(0),
+        total: 0,
+        logs: []
+      };
+      
+      // Seed rate snapshot if missing for current period
+      const selectedInfo2 = getPeriodInfo(pp);
+      const currentInfo2 = getPeriodInfo(payPeriodId(new Date()));
+      const isFutureOrCurrent = selectedInfo2.start >= currentInfo2.start;
+      if (isFutureOrCurrent && rateMap[d.id] === undefined) {
+        const rate = data.hourlyRate || 0;
+        rateMap[d.id] = rate;
+        const snapshotId = `${d.id}_${pp}`;
+        batch.set(doc(db, "hotels", hotelId, "rateSnapshots", snapshotId), {
+          uid: d.id,
+          payPeriodId: pp,
+          rate: rate,
+          updatedAt: serverTimestamp()
+        });
+        needsBatch = true;
+      }
+
+      if (data.status === "disabled") formerEmps.push(emps[d.id]);
+      else activeEmps.push(emps[d.id]);
+    });
+
+    if (needsBatch) await batch.commit();
+
+    const periodStart = info.start.getTime();
+    const periodEnd = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate(), 23, 59, 59).getTime();
+    const logs = [];
+    logSnap.forEach(d => {
+      const data = d.data();
+      const ts = data.timestamp?.toDate()?.getTime();
+      if (ts && ts >= periodStart && ts <= periodEnd) {
+        logs.push(data);
+      }
+    });
+    logs.sort((a,b) => a.timestamp?.seconds - b.timestamp?.seconds);
+
+    // Process Logs & Detect Abnormalities
+    const warnings = [];
+    const pending = {};
+    
+    // Shift Fraud Detection & Active Status
+    logs.forEach(l => {
+      if (!emps[l.uid]) return;
+      const emp = emps[l.uid];
+      emp.logs.push(l);
+      const ts = l.timestamp.toDate();
+
+      if (l.type === "clockIn") {
+        if (pending[l.uid]) {
+          warnings.push({ name: emp.name, msg: `Double clock-in detected on ${ts.toLocaleDateString()}`, type: 'danger' });
+        }
+        pending[l.uid] = ts;
+
+        // Schedule-based fraud detection for clock-in
+        const schedule = emp.weeklySchedule || {};
+        const dayKey = getDayKey(ts);
+        const dayShift = schedule[dayKey];
+
+        if (Object.keys(schedule).length > 0) {
+          if (!dayShift || dayShift === 'OFF') {
+            warnings.push({ name: emp.name, msg: `Clocked in on unscheduled day (${dayKey.toUpperCase()}) at ${ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} on ${ts.toLocaleDateString()}`, type: 'danger' });
+          } else {
+            const shift = parseShiftTime(dayShift, ts);
+            if (shift) {
+              const clockInMinutes = ts.getHours() * 60 + ts.getMinutes();
+              const diff = clockInMinutes - shift.startMinutes;
+              if (diff < -10) {
+                warnings.push({ name: emp.name, msg: `Clocked in ${Math.abs(diff)} min early on ${ts.toLocaleDateString()} — scheduled ${dayShift}, arrived at ${ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`, type: 'danger' });
+              } else if (diff > 10) {
+                warnings.push({ name: emp.name, msg: `Late arrival on ${ts.toLocaleDateString()} — scheduled ${dayShift}, arrived ${diff} min late at ${ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`, type: 'warning' });
+              }
+            }
+          }
+        }
+
+      } else if (l.type === "clockOut") {
+        if (!pending[l.uid]) {
+          warnings.push({ name: emp.name, msg: `Clock-out without clock-in on ${ts.toLocaleDateString()}`, type: 'warning' });
+        } else {
+          const start = pending[l.uid];
+          const end = ts;
+          const diffMs = end - start;
+          const hours = diffMs / (1000 * 60 * 60);
+          const minutes = diffMs / (1000 * 60);
+
+          if (minutes < 3) {
+            warnings.push({ name: emp.name, msg: `Suspiciously short shift (${minutes.toFixed(1)} mins) on ${start.toLocaleDateString()}`, type: 'danger' });
+          }
+          if (hours > 12) {
+            warnings.push({ name: emp.name, msg: `Shift exceeded 12 hours (${hours.toFixed(1)} hrs) on ${start.toLocaleDateString()}`, type: 'danger', highlight: true });
+          }
+
+          // Schedule-based fraud detection for clock-out
+          const schedule = emp.weeklySchedule || {};
+          const dayKey = getDayKey(start);
+          const dayShift = schedule[dayKey];
+          if (Object.keys(schedule).length > 0 && dayShift && dayShift !== 'OFF') {
+            const shift = parseShiftTime(dayShift, start);
+            if (shift) {
+              let clockOutMinutes = end.getHours() * 60 + end.getMinutes();
+              let shiftEnd = shift.endMinutes;
+              // Handle overnight — if clockout is early morning and shift ends past midnight
+              if (shiftEnd > 24 * 60 && clockOutMinutes < 12 * 60) {
+                clockOutMinutes += 24 * 60;
+              }
+              const diffOut = clockOutMinutes - shiftEnd;
+              if (diffOut > 10) {
+                warnings.push({ name: emp.name, msg: `Clocked out ${diffOut} min late on ${start.toLocaleDateString()} — scheduled until ${dayShift.split('-')[1] || dayShift}, left at ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`, type: 'danger' });
+              } else if (diffOut < -10) {
+                warnings.push({ name: emp.name, msg: `Left ${Math.abs(diffOut)} min early on ${start.toLocaleDateString()} — scheduled until ${dayShift.split('-')[1] || dayShift}, left at ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`, type: 'warning' });
+              }
+            }
+          }
+
+          const dayIdx = Math.floor((start - info.start) / (1000 * 60 * 60 * 24));
+          if (dayIdx >= 0 && dayIdx < 14) {
+            emps[l.uid].days[dayIdx] += hours;
+            emps[l.uid].total += hours;
+          }
+          pending[l.uid] = null;
+        }
+      }
+    });
+
+    // Check for missing clock-outs — only flag if the pay period has already ended
+    const periodHasEnded = new Date() > new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate(), 23, 59, 59);
+    Object.keys(pending).forEach(uid => {
+      if (pending[uid] && periodHasEnded) {
+        warnings.push({ name: emps[uid]?.name || uid, msg: `Missing clock-out for session started on ${pending[uid].toLocaleDateString()}`, type: 'danger' });
+      }
+    });
+
+    // Check for long period totals
+    Object.values(emps).forEach(e => {
+      if (e.total > 100 && e.logs.length > 0) {
+        warnings.push({ name: e.name, msg: `Pay period total exceeds 100 hours (${e.total.toFixed(1)} hrs)`, type: 'warning' });
+      }
+    });
+
+    // Overtime risk check
+    Object.values(emps).forEach(e => {
+      if (e.total > 35 && e.logs.length > 0) {
+        warnings.push({ name: e.name, msg: `Overtime risk: ${e.total.toFixed(1)} hrs this period (limit: 35hrs)`, type: 'danger' });
+      }
+    });
+
+    // Understaffing check
+    const activeCount = activeEmps.length;
+    if (activeCount < 3) {
+      warnings.push({ name: 'STAFFING ALERT', msg: `Only ${activeCount} active staff members in system`, type: 'warning' });
+    }
+
+    // Fix 3: IDs are assigned to warnings before renderWarnings is called
+    warnings.forEach(w => {
+      w.id = (w.name + '_' + w.msg).replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+    });
+
+    // Build set of currently live UIDs (clocked in right now during current period)
+    const isCurrentPeriod2 = pp === payPeriodId(new Date());
+    const liveUids = new Set();
+    if (isCurrentPeriod2) {
+      Object.keys(pending).forEach(uid => {
+        if (pending[uid]) liveUids.add(uid);
+      });
+    }
+    renderTimesheet(activeEmps, info, rateMap, liveUids);
+    renderWarnings(warnings);
+    renderPersonnel(activeEmps, formerEmps);
+
+    // Refresh schedule if visible
+    if (document.getElementById("scheduleSection")?.style.display === "block") {
+      loadSchedule();
+    }
+  } finally {
+    loadData.running = false;
+  }
+}
+
+function renderWarnings(warnings) {
+  const container = document.getElementById("warningContainer");
+  container.innerHTML = "";
+  
+  const activeWarnings = warnings.filter(w => !dismissedWarnings.has(w.id));
+  
+  const summary = document.createElement("div");
+  summary.className = "warning-summary";
+  summary.id = "warningSummary";
+  if (activeWarnings.length > 0) {
+    summary.innerHTML = `<span style="color: var(--warning);"><span id="abnormalityCount">${activeWarnings.length}</span> ABNORMALITIES DETECTED</span>`;
+  } else {
+    summary.innerHTML = `<span style="color: var(--accent);">SYSTEM NOMINAL</span>`;
+  }
+  container.appendChild(summary);
+
+  activeWarnings.forEach(w => {
+    const div = document.createElement("div");
+    div.className = `warning-box ${w.type === 'danger' ? 'danger' : ''}`;
+    div.style.display = "flex";
+    div.style.justifyContent = "space-between";
+    div.style.alignItems = "center";
+    
+    div.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <span class="warning-icon">${w.type === 'danger' ? '✖' : '⚠'}</span>
+        <span><strong>${w.name}</strong>: ${w.msg}</span>
+      </div>
+      <button class="btn-clear">✓ Mark Reviewed</button>
+    `;
+    
+    const btn = div.querySelector('.btn-clear');
+    btn.onclick = () => {
+      dismissedWarnings.add(w.id);
+      localStorage.setItem('dismissedWarnings', JSON.stringify([...dismissedWarnings]));
+      const countEl = document.getElementById('abnormalityCount');
+      if (countEl) {
+        let count = parseInt(countEl.innerText) - 1;
+        if (count <= 0) {
+          document.getElementById('warningSummary').innerHTML = `<span style="color: var(--accent);">SYSTEM NOMINAL</span>`;
+        } else {
+          countEl.innerText = count;
+        }
+      }
+      div.classList.add('fade-out');
+      setTimeout(() => div.remove(), 400);
+    };
+    
+    container.appendChild(div);
+
+    // Highlight row in timesheet if critical
+    if (w.highlight) {
+      const rows = document.querySelectorAll("#timesheetBody tr");
+      rows.forEach(row => {
+        if (row.cells[0] && row.cells[0].innerText === w.name) {
+          row.classList.add("timesheet-highlight");
+        }
+      });
+    }
+  });
+}
+
+function renderTimesheet(emps, info, rateMap = {}, liveUids = new Set()) {
+  const selectedPP = document.getElementById("ppSelector").value;
+  const now = new Date();
+  const currentPP = payPeriodId(now);
+  const currentInfo = getPeriodInfo(currentPP);
+  const selectedInfo = getPeriodInfo(selectedPP);
+  const isPastPeriod = selectedInfo.end < currentInfo.start;
+  const isCurrentPeriod = selectedPP === currentPP;
+
+  const editBtn = document.getElementById("editRatesBtn");
+  if (editBtn) {
+    editBtn.style.display = isPastPeriod ? "inline-flex" : "none";
+    if (!isPastPeriod) rateEditMode = false;
+  }
+  const isLocked = isPastPeriod;
+
+  const colCount = 1 + 14 + 3 - 1;
+  const head = document.getElementById("timesheetHead");
+  let headHtml = '<tr><th>Personnel</th>';
+  for(let i=0; i<14; i++) {
+    const d = new Date(info.start);
+    d.setDate(d.getDate() + i);
+    headHtml += `<th style="text-align:center;">${d.getDate()}</th>`;
+  }
+  headHtml += '<th style="text-align: right;">Total Hours</th>';
+  headHtml += '<th style="text-align: right;">Hourly Rate</th>';
+  headHtml += '<th style="text-align: right;">Total Pay</th></tr>';
+  head.innerHTML = headHtml;
+
+  const body = document.getElementById("timesheetBody");
+  body.innerHTML = "";
+  let grandTotalHours = 0;
+  let grandTotalPay = 0;
+
+  emps.sort((a,b) => a.name.localeCompare(b.name)).forEach(e => {
+    const tr = document.createElement("tr");
+    if (liveUids.has(e.uid)) {
+      tr.style.boxShadow = "0 0 20px rgba(0,255,65,0.06)";
+    }
+    grandTotalHours += e.total;
+    
+    const rate = (rateMap[e.uid] !== undefined) ? rateMap[e.uid] : (e.hourlyRate || 0);
+    const totalPay = e.total * rate;
+    grandTotalPay += totalPay;
+
+    const isLive = liveUids.has(e.uid);
+    const liveStyle = isLive
+      ? "box-shadow: inset 3px 0 0 var(--accent), 0 0 12px rgba(0,255,65,0.08); background: rgba(0,255,65,0.04);"
+      : "";
+    const liveBadge = isLive
+      ? `<span style="margin-left:8px; font-size:8px; font-weight:800; letter-spacing:1px; color:#000; background:var(--accent); padding:2px 6px; vertical-align:middle;">LIVE</span>`
+      : "";
+    let html = `<td style="cursor:pointer; color:var(--accent); ${liveStyle}" onclick="showAuditLogs('${e.uid}', '${e.name}')">${e.name}${liveBadge}</td>`;
+    e.days.forEach(h => html += `<td style="text-align:center;" class="mono">${h > 0 ? h.toFixed(1) : '-'}</td>`);
+    html += `<td style="font-weight:bold; text-align: right;" class="mono">${e.total > 0 ? e.total.toFixed(2) : '—'}</td>`;
+    
+    if (isCurrentPeriod || rateEditMode) {
+      html += `<td style="text-align:right;"><input type="number" step="0.01" value="${rate.toFixed(2)}" onchange="updateHourlyRate('${e.uid}', this.value)" style="width:70px; background:transparent; border:1px solid var(--border); color:var(--accent); text-align:right; padding:4px; font-family:'JetBrains Mono',monospace; font-size:12px;"></td>`;
+    } else {
+      html += `<td style="text-align:right; color:var(--accent);" class="mono">$${rate.toFixed(2)}</td>`;
+    }
+    
+    html += `<td style="font-weight:bold; text-align: right; color: var(--accent);" class="mono">${e.total > 0 ? '$' + totalPay.toFixed(2) : '—'}</td>`;
+    tr.innerHTML = html;
+    body.appendChild(tr);
+  });
+
+  if (emps.length > 0) {
+    const summaryTr = document.createElement("tr");
+    summaryTr.style.borderTop = "2px solid var(--border)";
+    summaryTr.style.fontWeight = "bold";
+    
+    let summaryHtml = `<td style="text-align:right; text-transform:uppercase; font-size:10px; opacity:0.6; letter-spacing:1px; padding-right:20px;">Total Summary</td>`;
+    // Empty cells for each day
+    for(let i=0; i<14; i++) summaryHtml += `<td></td>`;
+    
+    summaryHtml += `
+      <td style="text-align: right;" class="mono">${grandTotalHours > 0 ? grandTotalHours.toFixed(2) : '—'}</td>
+      <td></td>
+      <td style="text-align: right; color: var(--accent);" class="mono">${grandTotalPay > 0 ? '$' + grandTotalPay.toFixed(2) : '—'}</td>
+    `;
+    summaryTr.innerHTML = summaryHtml;
+    body.appendChild(summaryTr);
+  }
+}
+
+async function updateHourlyRate(uid, value) {
+  const rate = parseFloat(value) || 0;
+  if (rate < 0) {
+    showToast("Hourly rate cannot be negative.", "error");
+    loadData(); // Reset UI
+    return;
+  }
+  
+  const pp = document.getElementById("ppSelector").value;
+  const snapshotId = `${uid}_${pp}`;
+
+  try {
+    await setDoc(doc(db, "hotels", hotelId, "rateSnapshots", snapshotId), {
+      uid: uid,
+      payPeriodId: pp,
+      rate: rate,
+      updatedAt: serverTimestamp()
+    });
+    loadData();
+  } catch (error) {
+    console.error("Error updating hourly rate:", error);
+    showToast("Error updating rate: " + error.message, "error");
+  }
+}
+
+window.updateHourlyRate = updateHourlyRate;
+
+function renderPersonnel(active, former) {
+  const activeBody = document.getElementById("activeEmployeeBody");
+  activeBody.innerHTML = "";
+
+  const renderRow = (e, body) => {
+    const tr = document.createElement("tr");
+    tr.id = `emp-row-${e.uid}`;
+
+    if (body === activeBody) {
+      tr.innerHTML = `
+        <td style="font-weight:bold;">${e.name || "Unknown"}</td>
+        <td>${e.department || "—"}</td>
+        <td class="mono">${e.phone || "—"}</td>
+        <td class="mono">$${(e.hourlyRate || 0).toFixed(2)}</td>
+        <td style="text-align: right;">
+          <button class="btn btn-sm" onclick="openProfileModal('${e.uid}')">View Profile</button>
+        </td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td style="opacity:0.5;">${e.name || "Unknown"}</td>
+        <td style="opacity:0.5;">${e.department || "—"}</td>
+        <td style="opacity:0.5;" class="mono">${e.phone || "—"}</td>
+        <td style="text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="btn btn-sm" onclick="openProfileModal('${e.uid}')">View Profile</button>
+          <button class="btn btn-sm btn-danger" onclick="confirmDelete('${e.uid}')">Purge Data</button>
+        </td>
+      `;
+    }
+    body.appendChild(tr);
+  };
+
+  active.forEach(e => renderRow(e, activeBody));
+  const formerBody = document.getElementById("formerEmployeeBody");
+  formerBody.innerHTML = "";
+  former.filter(e => e && e.uid).forEach(e => renderRow(e, formerBody));
+}
+
+// Actions
+window.updateRole = async (uid, newRole) => {
+  await setDoc(doc(db, "hotels", hotelId, "employees", uid), { role: newRole }, { merge: true });
+  loadData();
+};
+
+window.deactivatePersonnel = async (uid) => {
+  if (await showConfirm("Deactivate Profile", "Are you sure you want to deactivate this personnel profile?")) {
+    await setDoc(doc(db, "hotels", hotelId, "employees", uid), { status: "disabled" }, { merge: true });
+    loadData();
+  }
+};
+
+window.reactivatePersonnel = async (uid) => {
+  await setDoc(doc(db, "hotels", hotelId, "employees", uid), { status: "active" }, { merge: true });
+  loadData();
+};
+
+window.confirmDelete = (uid) => {
+  targetDeleteUid = uid;
+  document.getElementById("deleteModal").style.display = "flex";
+};
+
+window.closeDeleteModal = () => {
+  document.getElementById("deleteModal").style.display = "none";
+  document.getElementById("confirmDeletePhrase").value = "";
+  targetDeleteUid = null;
+};
+
+document.getElementById("finalDeleteBtn").onclick = async () => {
+  const phrase = document.getElementById("confirmDeletePhrase").value;
+  if (phrase !== "delete this employee") return showToast('Please type "delete this employee" exactly to confirm.', "error");
+  
+  if (!targetDeleteUid) {
+    showToast("Invalid employee ID", "error");
+    return;
+  }
+
+  try {
+    // Purge Logs first
+    const logsSnap = await getDocs(query(collection(db, "hotels", hotelId, "logs"), where("uid", "==", targetDeleteUid)));
+    const batch = writeBatch(db);
+    logsSnap.forEach(d => batch.delete(d.ref));
+    
+    await batch.commit();
+    
+    // Delete Profile
+    await deleteDoc(doc(db, "hotels", hotelId, "employees", targetDeleteUid));
+    
+    showToast("Personnel data purged from system.", "success");
+    closeDeleteModal();
+    loadData();
+  } catch (e) {
+    showToast("Critical Error: " + e.message, "error");
+  }
+};
+
+window.handleExport = async () => {
+  const pp = document.getElementById("exportPPSelector").value;
+  if (!pp) return showToast("Please select a pay period first.", "error");
+  
+  const info = getPeriodInfo(pp);
+  const status = document.getElementById("exportStatus");
+  status.innerText = "INITIALIZING EXPORT PIPELINE...";
+
+  try {
+    const [empSnap, logSnap] = await Promise.all([
+      getDocs(collection(db, "hotels", hotelId, "employees")),
+      getDocs(collection(db, "hotels", hotelId, "logs"))
+    ]);
+
+    const employees = {};
+    empSnap.forEach(d => {
+      const data = d.data();
+      if (data.status !== "disabled") {
+        employees[d.id] = {
+          name: data.name || "Unknown",
+          email: data.email || "",
+          role: data.role || "employee",
+          hourlyRate: data.hourlyRate || 0,
+          sessions: [],
+          totalHours: 0,
+          totalPay: 0
+        };
+      }
+    });
+
+    const exportPeriodStart = info.start.getTime();
+    const exportPeriodEnd = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate(), 23, 59, 59).getTime();
+    const logs = [];
+    logSnap.forEach(d => {
+      const data = d.data();
+      const ts = data.timestamp?.toDate()?.getTime();
+      if (ts && ts >= exportPeriodStart && ts <= exportPeriodEnd) {
+        logs.push(data);
+      }
+    });
+    logs.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+    const pending = {};
+    logs.forEach(l => {
+      if (!employees[l.uid]) return;
+      if (l.type === "clockIn") {
+        pending[l.uid] = l.timestamp?.toDate();
+      } else if (l.type === "clockOut" && pending[l.uid]) {
+        const start = pending[l.uid];
+        const end = l.timestamp?.toDate();
+        const hours = (end - start) / (1000 * 60 * 60);
+        employees[l.uid].sessions.push({
+          date: start.toLocaleDateString(),
+          clockIn: start.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
+          clockOut: end.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
+          hours: parseFloat(hours.toFixed(2)),
+          rateAtTime: employees[l.uid].hourlyRate // Snapshot rate
+        });
+        employees[l.uid].totalHours += hours;
+        pending[l.uid] = null;
+      }
+    });
+
+    Object.values(employees).forEach(e => {
+      e.totalHours = parseFloat(e.totalHours.toFixed(2));
+      e.totalPay = parseFloat((e.totalHours * e.hourlyRate).toFixed(2));
+    });
+
+    const exportPayload = {
+      payPeriod: info.label,
+      generatedAt: new Date().toLocaleString(),
+      employees: Object.values(employees)
+        .filter(e => e.sessions.length > 0)
+        .sort((a, b) => a.name.localeCompare(b.name))
+    };
+
+    if (exportPayload.employees.length === 0) {
+      status.innerText = "ERROR: NO DATA FOUND FOR PERIOD.";
+      return;
+    }
+
+    await fetch(SHEETS_WEBHOOK_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(exportPayload)
+    });
+
+    status.innerText = "EXPORT SUCCESSFUL. DATA TRANSMITTED TO LEDGER.";
+  } catch (e) {
+    status.innerText = "CRITICAL ERROR: " + e.message.toUpperCase();
+  }
+};
+
+window.showAuditLogs = async (uid, name) => {
+  currentAuditUid = uid;
+  document.getElementById("auditTitle").innerText = `Work Sessions: ${name}`;
+  const body = document.getElementById("auditLogBody");
+  body.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:30px; opacity:0.4;'>Loading...</td></tr>";
+  document.getElementById("auditModal").style.display = "flex";
+  await renderSessionTable(uid);
+};
+
+async function renderSessionTable(uid) {
+  const body = document.getElementById("auditLogBody");
+  const q = query(collection(db, "hotels", hotelId, "logs"), where("uid", "==", uid));
+  const snap = await getDocs(q);
+  const logs = [];
+  snap.forEach(d => logs.push({ ...d.data(), id: d.id }));
+  logs.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+  // Pair into sessions
+  const sessions = [];
+  let pendingIn = null;
+  logs.forEach(l => {
+    if (l.type === "clockIn") {
+      pendingIn = l;
+    } else if (l.type === "clockOut" && pendingIn) {
+      sessions.push({ inLog: pendingIn, outLog: l });
+      pendingIn = null;
+    }
+  });
+  if (pendingIn) sessions.push({ inLog: pendingIn, outLog: null }); // Live session
+
+  sessions.reverse();
+  body.innerHTML = "";
+
+  if (sessions.length === 0) {
+    body.innerHTML = "<tr><td colspan='5' style='text-align:center; opacity:0.3; padding:40px;'>No sessions found.</td></tr>";
+    return;
+  }
+
+  sessions.forEach(s => {
+    const tr = document.createElement("tr");
+    const inTs = s.inLog.timestamp?.toDate();
+    const outTs = s.outLog?.timestamp?.toDate();
+    const isLive = !s.outLog;
+    const hours = isLive
+      ? (new Date() - inTs) / (1000 * 60 * 60)
+      : (outTs - inTs) / (1000 * 60 * 60);
+
+    const inStr = inTs ? inTs.toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '---';
+    const outStr = isLive
+      ? '<span style="color:var(--accent); animation: blink 1s infinite; display:inline-block;">LIVE</span>'
+      : (outTs ? outTs.toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '---');
+
+    if (isLive) tr.style.borderLeft = "3px solid var(--accent)";
+
+    tr.innerHTML = `
+      <td class="mono">${inTs ? inTs.toLocaleDateString() : '---'}</td>
+      <td class="mono">${inTs ? inTs.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '---'}</td>
+      <td class="mono">${isLive ? '<span style="color:var(--accent);">LIVE</span>' : (outTs ? outTs.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '---')}</td>
+      <td class="mono" style="text-align:right;">${hours > 0 ? hours.toFixed(2) : '—'}</td>
+      <td style="text-align:right;">
+        <div style="display:flex; gap:6px; justify-content:flex-end;">
+          <button class="btn btn-sm" onclick="editSession('${s.inLog.id}', '${s.outLog?.id || ''}', '${inTs?.toISOString() || ''}', '${outTs?.toISOString() || ''}', ${isLive})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteSession('${s.inLog.id}', '${s.outLog?.id || ''}')">Delete</button>
+        </div>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+window.editSession = (inId, outId, inIso, outIso, isLive) => {
+  document.getElementById("sessionEditTitle").innerText = isLive ? "Edit Active Session" : "Edit Session";
+  document.getElementById("sessionEditStatus").style.display = "none";
+
+  const pad = n => String(n).padStart(2, '0');
+  const fmt = iso => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  };
+
+  document.getElementById("sessionInTime").value = fmt(inIso);
+  document.getElementById("sessionOutTime").value = fmt(outIso);
+  document.getElementById("sessionOutWrapper").style.display = isLive ? "none" : "block";
+
+  document.getElementById("sessionEditModal").style.display = "flex";
+
+  document.getElementById("saveSessionBtn").onclick = async () => {
+    const status = document.getElementById("sessionEditStatus");
+    status.style.display = "block";
+    status.style.color = "var(--accent)";
+    status.innerText = "SAVING...";
+    try {
+      const newIn = new Date(document.getElementById("sessionInTime").value);
+      if (isNaN(newIn.getTime())) { status.style.color = "var(--danger)"; status.innerText = "Invalid clock-in time."; return; }
+
+      await setDoc(doc(db, "hotels", hotelId, "logs", inId), {
+        timestamp: Timestamp.fromDate(newIn),
+        payPeriodId: payPeriodId(newIn)
+      }, { merge: true });
+      await recordAuditLog("clockIn", inIso, newIn.toISOString(), inId);
+
+      if (!isLive && outId) {
+        const newOut = new Date(document.getElementById("sessionOutTime").value);
+        if (isNaN(newOut.getTime())) { status.style.color = "var(--danger)"; status.innerText = "Invalid clock-out time."; return; }
+        if (newOut <= newIn) { status.style.color = "var(--danger)"; status.innerText = "Clock-out must be after clock-in."; return; }
+        await setDoc(doc(db, "hotels", hotelId, "logs", outId), {
+          timestamp: Timestamp.fromDate(newOut),
+          payPeriodId: payPeriodId(newOut)
+        }, { merge: true });
+        await recordAuditLog("clockOut", outIso, newOut.toISOString(), outId);
+      }
+
+      closeSessionEditModal();
+      await renderSessionTable(currentAuditUid);
+      loadData();
+      showToast("Session updated.", "success");
+    } catch(e) {
+      status.style.color = "var(--danger)";
+      status.innerText = "Error: " + e.message;
+    }
+  };
+};
+
+window.deleteSession = async (inId, outId) => {
+  if (!await showConfirm("Delete Session", "Delete this work session? This cannot be undone.")) return;
+  try {
+    const batch = writeBatch(db);
+    batch.delete(doc(db, "hotels", hotelId, "logs", inId));
+    if (outId) batch.delete(doc(db, "hotels", hotelId, "logs", outId));
+    await batch.commit();
+    await renderSessionTable(currentAuditUid);
+    loadData();
+    showToast("Session deleted.", "success");
+  } catch(e) {
+    showToast("Error: " + e.message, "error");
+  }
+};
+
+window.openAddSessionModal = () => {
+  document.getElementById("sessionEditTitle").innerText = "Add Session";
+  document.getElementById("sessionEditStatus").style.display = "none";
+  document.getElementById("sessionInTime").value = "";
+  document.getElementById("sessionOutTime").value = "";
+  document.getElementById("sessionOutWrapper").style.display = "block";
+  document.getElementById("sessionEditModal").style.display = "flex";
+
+  document.getElementById("saveSessionBtn").onclick = async () => {
+    const status = document.getElementById("sessionEditStatus");
+    status.style.display = "block";
+    status.style.color = "var(--accent)";
+    status.innerText = "SAVING...";
+    try {
+      const newIn = new Date(document.getElementById("sessionInTime").value);
+      const outVal = document.getElementById("sessionOutTime").value;
+      const hasOut = outVal && outVal.trim() !== "";
+
+      if (isNaN(newIn.getTime())) {
+        status.style.color = "var(--danger)";
+        status.innerText = "Invalid clock-in time.";
+        return;
+      }
+
+      // If no clock-out, treat as a clock-in only — only allowed for today
+      if (!hasOut) {
+        const today = new Date();
+        const isSameDay = newIn.getFullYear() === today.getFullYear()
+          && newIn.getMonth() === today.getMonth()
+          && newIn.getDate() === today.getDate();
+        if (!isSameDay) {
+          status.style.color = "var(--danger)";
+          status.innerText = "Clock-in only is allowed for today only. Add a clock-out time for past sessions.";
+          return;
+        }
+      }
+
+      let newOut = null;
+      if (hasOut) {
+        newOut = new Date(outVal);
+        if (isNaN(newOut.getTime())) {
+          status.style.color = "var(--danger)";
+          status.innerText = "Invalid clock-out time.";
+          return;
+        }
+        if (newOut <= newIn) {
+          status.style.color = "var(--danger)";
+          status.innerText = "Clock-out must be after clock-in.";
+          return;
+        }
+      }
+
+      const empSnap = await getDoc(doc(db, "hotels", hotelId, "employees", currentAuditUid));
+      const empName = empSnap.exists() ? empSnap.data().name : "Unknown";
+
+      await addDoc(collection(db, "hotels", hotelId, "logs"), {
+        uid: currentAuditUid,
+        name: empName,
+        type: "clockIn",
+        timestamp: Timestamp.fromDate(newIn),
+        payPeriodId: payPeriodId(newIn)
+      });
+
+      if (newOut) {
+        await addDoc(collection(db, "hotels", hotelId, "logs"), {
+          uid: currentAuditUid,
+          name: empName,
+          type: "clockOut",
+          timestamp: Timestamp.fromDate(newOut),
+          payPeriodId: payPeriodId(newOut)
+        });
+      }
+
+      const logDesc = newOut
+        ? `${newIn.toISOString()} → ${newOut.toISOString()}`
+        : `${newIn.toISOString()} → (clock-in only)`;
+      await recordAuditLog("addSession", "—", logDesc, null, currentAuditUid);
+
+      closeSessionEditModal();
+      await renderSessionTable(currentAuditUid);
+      loadData();
+      showToast(newOut ? "Session added." : "Employee clocked in.", "success");
+    } catch(e) {
+      status.style.color = "var(--danger)";
+      status.innerText = "Error: " + e.message;
+    }
+  };
+};
+
+window.closeSessionEditModal = () => {
+  document.getElementById("sessionEditModal").style.display = "none";
+};
+
+window.clearAuditLogs = async () => {
+  if (!currentAuditUid) return;
+  if (!await showConfirm("Clear Logs", "Are you sure you want to clear all audit logs? This action cannot be undone.")) return;
+
+  try {
+    const q = query(collection(db, "hotels", hotelId, "logs"), where("uid", "==", currentAuditUid));
+    const snap = await getDocs(q);
+    const batch = writeBatch(db);
+    snap.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    
+    const body = document.getElementById("auditLogBody");
+    body.innerHTML = "<tr><td colspan='5' style='text-align:center; opacity:0.3; padding:40px;'>No sessions found.</td></tr>";
+    showToast("Logs cleared.", "success");
+    loadData();
+  } catch (e) {
+    showToast("Error clearing logs: " + e.message, "error");
+  }
+};
+
+window.closeAuditModal = () => {
+  document.getElementById("auditModal").style.display = "none";
+};
+
+// Edit & Audit Log Logic
+let targetEditEmpUid = null;
+
+window.openEditEmpModal = async (uid) => {
+  targetEditEmpUid = uid;
+  const docRef = doc(db, "hotels", hotelId, "employees", uid);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) return;
+  const data = snap.data();
+
+  document.getElementById("editEmpName").value = data.name || "";
+  document.getElementById("editEmpPhone").value = data.phone || "";
+  document.getElementById("editEmpEmail").value = data.email || "";
+  document.getElementById("editEmpDept").value = data.department || "";
+  document.getElementById("editEmpHourlyRate").value = data.hourlyRate || "";
+  document.getElementById("editEmpHireDate").value = data.hireDate || "";
+  document.getElementById("editEmpSSN").value = "";
+  document.getElementById("editEmpEmergency").value = data.emergencyContact || "";
+  document.getElementById("editEmpStatus").style.display = "none";
+  document.getElementById("editEmpModal").style.display = "flex";
+
+  // Close profile modal if open
+  const profileModal = document.getElementById("profileModal");
+  if (profileModal) profileModal.style.display = "none";
+};
+
+window.closeEditEmpModal = () => {
+  document.getElementById("editEmpModal").style.display = "none";
+  targetEditEmpUid = null;
+};
+
+document.getElementById("saveEmpBtn").onclick = async () => {
+  const name = document.getElementById("editEmpName").value.trim();
+  const phone = document.getElementById("editEmpPhone").value.trim();
+  const email = document.getElementById("editEmpEmail").value.trim();
+  const dept = document.getElementById("editEmpDept").value;
+  const hourlyRate = parseFloat(document.getElementById("editEmpHourlyRate").value) || 0;
+  const hireDate = document.getElementById("editEmpHireDate").value;
+  const ssn4 = document.getElementById("editEmpSSN").value.trim();
+  const emergency = document.getElementById("editEmpEmergency").value.trim();
+  const statusDiv = document.getElementById("editEmpStatus");
+
+  if (!name) return showToast("Name is required.", "error");
+  if (hourlyRate < 0) return showToast("Hourly rate cannot be negative.", "error");
+
+  statusDiv.style.display = "block";
+  statusDiv.style.color = "var(--accent)";
+  statusDiv.innerText = "SAVING...";
+
+  try {
+    const docRef = doc(db, "hotels", hotelId, "employees", targetEditEmpUid);
+    const snap = await getDoc(docRef);
+    const oldData = snap.data();
+
+    const updates = { name, phone, email, department: dept, hourlyRate, hireDate, emergencyContact: emergency };
+    if (ssn4 && ssn4.length === 4) updates.ssnLast4 = ssn4;
+
+    await setDoc(docRef, updates, { merge: true });
+
+    // Record audit log for name/email changes
+    if (name !== oldData.name) await recordAuditLog("name", oldData.name, name, null, targetEditEmpUid);
+    if (email !== oldData.email) await recordAuditLog("email", oldData.email, email, null, targetEditEmpUid);
+    if (hourlyRate !== oldData.hourlyRate) await recordAuditLog("hourlyRate", oldData.hourlyRate, hourlyRate, null, targetEditEmpUid);
+
+    statusDiv.innerText = "SAVED";
+    setTimeout(() => {
+      closeEditEmpModal();
+      loadData();
+    }, 800);
+  } catch(e) {
+    statusDiv.style.color = "var(--danger)";
+    statusDiv.innerText = "ERROR: " + e.message;
+  }
+};
+
+async function recordAuditLog(field, oldVal, newVal, logId, empUid) {
+  await addDoc(collection(db, "hotels", hotelId, "auditLogs"), {
+    manager: currentUserProfile.email,
+    field: field,
+    oldValue: String(oldVal),
+    newValue: String(newVal),
+    targetId: logId || empUid,
+    editedAt: serverTimestamp()
+  });
+}
+
+function highlightRow(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.background = "rgba(0, 255, 65, 0.1)";
+    setTimeout(() => { el.style.background = "transparent"; }, 2000);
+  }
+}
+
+window.clearAllAuditHistory = async () => {
+  if (!await showConfirm("Clear Audit History", "Are you sure you want to clear ALL audit history? This cannot be undone.")) return;
+
+  try {
+    const snap = await getDocs(collection(db, "hotels", hotelId, "auditLogs"));
+    const batch = writeBatch(db);
+    snap.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+
+    const body = document.getElementById("auditHistoryBody");
+    if (body) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; opacity:0.3; padding:40px; word-break: break-word; white-space: normal;">
+            No audit history available.
+          </td>
+        </tr>
+      `;
+    }
+  } catch (e) {
+    showToast("Error clearing audit history: " + e.message, "error");
+  }
+};
+
+async function loadAuditHistory() {
+  const body = document.getElementById("auditHistoryBody");
+  if (!body) return;
+  body.innerHTML = "<tr><td colspan='6' style='word-break: break-word; white-space: normal;'>Loading audit logs...</td></tr>";
+  
+  try {
+    const q = query(collection(db, "hotels", hotelId, "auditLogs"), limit(100));
+    const snap = await getDocs(q);
+    const logs = [];
+    snap.forEach(d => logs.push(d.data()));
+    
+    logs.sort((a, b) => (b.editedAt?.seconds || 0) - (a.editedAt?.seconds || 0));
+    
+    body.innerHTML = "";
+    if (logs.length === 0) {
+      body.innerHTML = "<tr><td colspan='6' style='word-break: break-word; white-space: normal;'>No audit logs found.</td></tr>";
+      return;
+    }
+    
+    logs.forEach(l => {
+      const tr = document.createElement("tr");
+      const oldV = String(l.oldValue);
+      const newV = String(l.newValue);
+      tr.innerHTML = `
+        <td style="word-break: break-word; white-space: normal;">${l.manager}</td>
+        <td style="word-break: break-word; white-space: normal;">${l.field}</td>
+        <td class="mono" title="${oldV}" style="word-break: break-word; white-space: normal;">${oldV.substring(0, 20)}${oldV.length > 20 ? '...' : ''}</td>
+        <td class="mono" title="${newV}" style="word-break: break-word; white-space: normal;">${newV.substring(0, 20)}${newV.length > 20 ? '...' : ''}</td>
+        <td class="mono" style="word-break: break-word; white-space: normal;">${l.targetId}</td>
+        <td class="mono" style="word-break: break-word; white-space: normal;">${l.editedAt?.toDate().toLocaleString() || '---'}</td>
+      `;
+      body.appendChild(tr);
+    });
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan='6' style="color:var(--danger); word-break: break-word; white-space: normal;">Error: ${e.message}</td></tr>`;
+  }
+}
+
+document.getElementById("logoutBtn").onclick = () => signOut(auth);
+
+// Utils
+// Shared utility — keep in sync across index.html, terminal.html, manager.html
+function payPeriodId(date) {
+  const anchor = new Date(2026, 0, 1); // Jan 1 2026 as anchor
+  const diff = Math.floor((date - anchor) / (1000 * 60 * 60 * 24));
+  const p = Math.floor(diff / 14);
+  const periodStart = new Date(anchor);
+  periodStart.setDate(periodStart.getDate() + p * 14);
+  return `${periodStart.getFullYear()}_PP_${String(p).padStart(2, "0")}`;
+}
+
+function getPeriodInfo(ppId) {
+  const parts = ppId.split('_');
+  const p = parseInt(parts[2]);
+  const anchor = new Date(2026, 0, 1);
+  const start = new Date(anchor);
+  start.setDate(start.getDate() + p * 14);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 13);
+  return { start, end, label: `${start.toLocaleDateString('en-US', {month:'short', day:'numeric'})} - ${end.toLocaleDateString('en-US', {month:'short', day:'numeric'})}` };
+}
+
+window.generateTempPassword = () => {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+  let pass = "";
+  for (let i = 0; i < 10; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  document.getElementById("newEmpTempPass").value = pass;
+};
+
+window.openAddModal = () => {
+  document.getElementById("addModal").style.display = "flex";
+  document.getElementById("newEmpHireDate").value = new Date().toISOString().split('T')[0];
+  generateTempPassword();
+};
+
+window.closeAddModal = () => {
+  document.getElementById("addModal").style.display = "none";
+  ["newEmpName", "newEmpPhone", "newEmpEmail", "newEmpHourlyRate", "newEmpSSN", "newEmpEmergency", "newEmpTempPass"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+};
+
+window.addEmployee = async () => {
+  const name = document.getElementById("newEmpName").value.trim();
+  const phone = document.getElementById("newEmpPhone").value.trim();
+  const email = document.getElementById("newEmpEmail").value.toLowerCase().trim();
+  const dept = document.getElementById("newEmpDept").value;
+  const hourlyRate = parseFloat(document.getElementById("newEmpHourlyRate").value) || 0;
+  const hireDate = document.getElementById("newEmpHireDate").value;
+  const ssn = document.getElementById("newEmpSSN").value.trim();
+  const emergency = document.getElementById("newEmpEmergency").value.trim();
+  const tempPass = document.getElementById("newEmpTempPass").value.trim();
+
+  if (!name || !email || !tempPass) return showToast("Name, Email, and Temp Password are required.", "error");
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, tempPass);
+    const user = cred.user;
+
+    await setDoc(doc(db, "hotels", hotelId, "employees", user.uid), {
+      uid: user.uid,
+      name, phone, email,
+      department: dept,
+      hourlyRate,
+      hireDate,
+      ssnLast4: ssn,
+      emergencyContact: emergency,
+      role: 'employee',
+      status: 'active',
+      createdAt: serverTimestamp()
+    });
+
+    showToast("Employee account created successfully.", "success");
+    closeAddModal();
+    loadData();
+  } catch (e) {
+    showToast("Error creating account: " + e.message, "error");
+  }
+};
+
+let currentProfileUid = null;
+
+window.openProfileModal = async (uid) => {
+  try {
+    currentProfileUid = uid;
+    const docRef = doc(db, "hotels", hotelId, "employees", uid);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) { showToast("Employee profile not found.", "error"); return; }
+    const p = snap.data();
+
+    document.getElementById("profileTitle").innerText = p.name;
+    const badge = document.getElementById("profileStatusBadge");
+    badge.innerText = p.status ? p.status.toUpperCase() : "ACTIVE";
+    badge.className = `status-badge ${p.status === 'active' ? 'optimal' : 'action'}`;
+
+    const details = document.getElementById("profileDetails");
+    details.innerHTML = `
+      <div><label class="staffing-label">Email</label><div>${p.email || '—'}</div></div>
+      <div><label class="staffing-label">Phone</label><div>${p.phone || '—'}</div></div>
+      <div><label class="staffing-label">Department</label><div>${p.department || '—'}</div></div>
+      <div><label class="staffing-label">Hourly Rate</label><div>$${(p.hourlyRate || 0).toFixed(2)}/hr</div></div>
+      <div><label class="staffing-label">Hire Date</label><div>${p.hireDate || '—'}</div></div>
+      <div><label class="staffing-label">SSN Last 4</label><div>***-**-${p.ssnLast4 || '****'}</div></div>
+      <div><label class="staffing-label">Emergency Contact</label><div>${p.emergencyContact || '—'}</div></div>
+    `;
+
+    const deactBtn = document.getElementById("deactivateBtn");
+    deactBtn.innerText = p.status === 'active' ? 'Deactivate Account' : 'Reactivate Account';
+    deactBtn.onclick = () => toggleEmployeeStatus(uid, p.status);
+    document.getElementById("viewLogsBtn").onclick = () => { closeProfileModal(); showAuditLogs(uid, p.name); };
+    document.getElementById("resetPassBtn").onclick = () => resetEmployeePassword(uid, p.name, p.email);
+    document.getElementById("editProfileBtn").onclick = () => openEditEmpModal(uid);
+
+    document.getElementById("profileModal").style.display = "flex";
+  } catch(e) {
+    showToast("Error loading profile: " + e.message, "error");
+  }
+};
+
+window.closeProfileModal = () => {
+  document.getElementById("profileModal").style.display = "none";
+  currentProfileUid = null;
+};
+
+window.toggleEmployeeStatus = async (uid, currentStatus) => {
+  const newStatus = currentStatus === 'active' ? 'disabled' : 'active';
+  if (!await showConfirm("Change Status", `Are you sure you want to ${newStatus === 'active' ? 'reactivate' : 'deactivate'} this employee?`)) return;
+  
+  await updateDoc(doc(db, "hotels", hotelId, "employees", uid), { status: newStatus });
+  closeProfileModal();
+  loadData();
+};
+
+window.resetEmployeePassword = async (uid, name, email) => {
+  const tempPass = Math.random().toString(36).slice(-8);
+  
+  // Show the temporary password to the manager
+  await showConfirm(
+    "Temporary Password Generated",
+    `Temporary password for ${name}: <br><br><span style="font-family: var(--font-mono); font-size: 20px; color: var(--accent); letter-spacing: 2px;">${tempPass}</span><br><br>Please provide this to the employee. They will be prompted to change it upon login.`,
+    "Done",
+    false
+  );
+
+  // Background backup reset email (only for non-inova addresses)
+  if (email && !email.endsWith("@inova-staff.com")) {
+    sendPasswordResetEmail(auth, email).catch(e => console.warn("Background reset email failed:", e));
+  }
+};
+
+window.openInviteModal = () => {
+  // Legacy function removed
+};
+window.closeInviteModal = () => {
+  // Legacy function removed
+};
+
+// SCHEDULE SYSTEM
+const SCHEDULE_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const FD_SHIFTS = ['OFF', '7a-3p', '3p-11p', '11p-7a'];
+
+window.loadSchedule = async () => {
+  const empSnap = await getDocs(collection(db, "hotels", hotelId, "employees"));
+  const emps = [];
+  empSnap.forEach(d => {
+    const data = d.data();
+    if (data.status !== "disabled") {
+      emps.push({ ...data, uid: d.id });
+    }
+  });
+
+  const fd = emps.filter(e => e.department === "Front Desk").sort((a,b) => a.name.localeCompare(b.name));
+  const hk = emps.filter(e => e.department === "Housekeeping").sort((a,b) => a.name.localeCompare(b.name));
+  const other = emps.filter(e => e.department !== "Front Desk" && e.department !== "Housekeeping").sort((a,b) => a.name.localeCompare(b.name));
+
+  renderScheduleTable('scheduleBodyFD', fd, 'fd');
+  renderScheduleTable('scheduleBodyHK', hk, 'hk');
+  renderScheduleTable('scheduleBodyOther', other, 'addl');
+};
+
+window.renderScheduleTable = (tbodyId, emps, type) => {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = "";
+  
+  emps.forEach(e => {
+    const tr = document.createElement("tr");
+    let html = `<td style="text-align:left; font-weight:600; font-size:11px;">${e.name}</td>`;
+    
+    const sched = e.weeklySchedule || {};
+    
+    SCHEDULE_DAYS.forEach(day => {
+      const val = sched[day] || "OFF";
+      let color = "opacity:0.3;";
+      if (val !== "OFF") color = "color:var(--accent); font-weight:bold;";
+      
+      html += `
+        <td class="mono" 
+            style="cursor:pointer; font-size:11px; ${color}" 
+            data-uid="${e.uid}" data-day="${day}" data-type="${type}" data-val="${val}"
+            onclick="handleScheduleClick('${e.uid}', '${day}', '${val}', '${type}')"
+            ondblclick="handleScheduleDblClick(this)">
+          ${val}
+        </td>`;
+    });
+    
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+};
+
+window.handleScheduleClick = async (uid, day, currentVal, type) => {
+  let newVal = "OFF";
+  
+  if (type === 'fd') {
+    const idx = FD_SHIFTS.indexOf(currentVal);
+    newVal = FD_SHIFTS[(idx + 1) % FD_SHIFTS.length];
+  } else {
+    // Toggle OFF -> 9a-5p -> OFF
+    newVal = currentVal === "OFF" ? "9a-5p" : "OFF";
+  }
+  
+  await saveScheduleCell(uid, day, newVal);
+};
+
+window.handleScheduleDblClick = (cell) => {
+  const existing = document.getElementById('schedulePicker');
+  if (existing) existing.remove();
+
+  const uid = cell.dataset.uid;
+  const day = cell.dataset.day;
+  const type = cell.dataset.type;
+  const current = cell.dataset.val;
+
+  let placeholder = "e.g. 7a-3p";
+  if (type === 'hk') placeholder = "e.g. 9, 10a, 12";
+  else if (type === 'addl') placeholder = "e.g. 7a, 9a";
+
+  const picker = document.createElement("div");
+  picker.id = "schedulePicker";
+  picker.style.cssText = `
+    position: fixed;
+    background: #0a0a0a;
+    border: 1px solid var(--accent);
+    padding: 10px;
+    z-index: 5000;
+    min-width: 180px;
+    box-shadow: 0 4px 20px rgba(0,255,65,0.1);
+  `;
+
+  const rect = cell.getBoundingClientRect();
+  picker.style.left = rect.left + "px";
+  picker.style.top = (rect.bottom + 4) + "px";
+
+  const label = document.createElement("div");
+  label.style.cssText = "font-size:9px; opacity:0.4; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;";
+  label.innerText = day + " — Custom Shift";
+  picker.appendChild(label);
+
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex; gap:6px;";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = placeholder;
+  input.value = current === "OFF" ? "" : current;
+  input.style.cssText = `
+    flex: 1;
+    background: #000;
+    border: 1px solid var(--border);
+    color: var(--ink);
+    padding: 6px 8px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    width: 100px;
+  `;
+
+  const btn = document.createElement("button");
+  btn.innerText = "Set";
+  btn.style.cssText = `
+    padding: 6px 10px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    cursor: pointer;
+    font-weight: 800;
+    text-transform: uppercase;
+  `;
+
+  const commit = async () => {
+    const val = input.value.trim() || "OFF";
+    picker.remove();
+    await saveScheduleCell(uid, day, val, cell);
+  };
+
+  btn.onclick = commit;
+  input.onkeydown = (e) => {
+    if (e.key === "Enter") commit();
+    if (e.key === "Escape") picker.remove();
+  };
+
+  row.appendChild(input);
+  row.appendChild(btn);
+  picker.appendChild(row);
+  document.body.appendChild(picker);
+  input.focus();
+  input.select();
+
+  setTimeout(() => {
+    document.addEventListener("click", function closePicker(e) {
+      if (!picker.contains(e.target) && e.target !== cell) {
+        picker.remove();
+        document.removeEventListener("click", closePicker);
+      }
+    });
+  }, 100);
+};
+
+window.saveScheduleCell = async (uid, day, val) => {
+  const docRef = doc(db, "hotels", hotelId, "employees", uid);
+  const snap = await getDoc(docRef);
+  const data = snap.data();
+  const sched = data.weeklySchedule || {};
+  sched[day] = val;
+  
+  await updateDoc(docRef, { weeklySchedule: sched });
+  loadSchedule();
+};
+
+// Toast & Confirm Logic
+let confirmPromise = null;
+
+window.showToast = (msg, type = 'success', duration = 3000) => {
+  const el = document.getElementById("toastEl");
+  el.innerText = msg;
+  el.className = `toast show ${type}`;
+  setTimeout(() => el.classList.remove('show'), duration);
+};
+
+window.showConfirm = (title, msg, btnText = "Confirm", showCancel = true) => {
+  document.getElementById("confirmTitle").innerText = title;
+  document.getElementById("confirmMsg").innerHTML = msg;
+  const yesBtn = document.getElementById("confirmYesBtn");
+  yesBtn.innerText = btnText;
+  
+  const cancelBtn = document.querySelector(".confirm-btns button:not(#confirmYesBtn)");
+  if (cancelBtn) cancelBtn.style.display = showCancel ? "inline-block" : "none";
+
+  document.getElementById("confirmOverlay").style.display = "flex";
+  return new Promise((resolve) => {
+    confirmPromise = resolve;
+    yesBtn.onclick = () => closeConfirm(true);
+  });
+};
+
+window.toggleRateEdit = () => {
+  rateEditMode = !rateEditMode;
+  const btn = document.getElementById("editRatesBtn");
+  if (btn) {
+    btn.innerText = rateEditMode ? "Lock Rates" : "Edit Rates";
+    btn.style.color = rateEditMode ? "var(--accent)" : "var(--ink)";
+    btn.style.borderColor = rateEditMode ? "var(--accent)" : "var(--border)";
+  }
+  loadData();
+};
+
+window.closeConfirm = (result) => {
+  document.getElementById("confirmOverlay").style.display = "none";
+  if (confirmPromise) confirmPromise(result);
+  confirmPromise = null;
+};
+</script>
+</body>
+</html>
